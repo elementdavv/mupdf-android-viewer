@@ -75,6 +75,8 @@ public class DocumentActivity extends Activity
 	private SeekBar      mPageSlider;
 	private int          mPageSliderRes;
 	private TextView     mPageNumberView;
+	private ImageButton  mTextLeftButton;
+	private ImageButton  mFlipVerticalButton;
 	private ImageButton  mSearchButton;
 	private ImageButton  mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
@@ -86,6 +88,8 @@ public class DocumentActivity extends Activity
 	private EditText     mSearchText;
 	private SearchTask   mSearchTask;
 	private AlertDialog.Builder mAlertBuilder;
+    private boolean    mTextLeftHighlight = false;
+    private boolean    mFlipVerticalHighlight = false;
 	private boolean    mLinkHighlight = false;
 	private final Handler mHandler = new Handler();
 	private boolean mAlertsActive= false;
@@ -359,9 +363,8 @@ public class DocumentActivity extends Activity
 				if (core == null)
 					return;
 
-				mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", i + 1, core.countPages()));
-				mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
-				mPageSlider.setProgress(i * mPageSliderRes);
+		        updatePageNumView(i);
+                updatePageSlider(i);
 				super.onMoveToChild(i);
 			}
 
@@ -424,14 +427,20 @@ public class DocumentActivity extends Activity
 		mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				mDocView.pushHistory();
-				mDocView.setDisplayedViewIndex((seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
+                if (!mTextLeftHighlight)
+				    mDocView.setDisplayedViewIndex((seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
+                else
+				    mDocView.setDisplayedViewIndex(core.countPages() - 1 - (seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
 			}
 
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				updatePageNumView((progress+mPageSliderRes/2)/mPageSliderRes);
+                if (!mTextLeftHighlight)
+				    updatePageNumView((progress+mPageSliderRes/2)/mPageSliderRes);
+                else
+				    updatePageNumView(core.countPages() - 1 - (progress+mPageSliderRes/2)/mPageSliderRes);
 			}
 		});
 
@@ -441,6 +450,18 @@ public class DocumentActivity extends Activity
 				searchModeOn();
 			}
 		});
+
+        mTextLeftButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleTextLeftHighlight();
+            }
+        });
+
+        mFlipVerticalButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleFlipVerticalHighlight();
+            }
+        });
 
 		mSearchClose.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -650,6 +671,25 @@ public class DocumentActivity extends Activity
 		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
 	}
 
+    private void toggleTextLeftHighlight() {
+		mTextLeftHighlight = !mTextLeftHighlight;
+		// COLOR tint
+		mTextLeftButton.setColorFilter(mTextLeftHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		int index = mDocView.getDisplayedViewIndex();
+		updatePageNumView(index);
+        updatePageSlider(index);
+		// Inform pages of the change.
+		mDocView.toggleTextLeft();
+	}
+
+    private void toggleFlipVerticalHighlight() {
+		mFlipVerticalHighlight = !mFlipVerticalHighlight;
+		// COLOR tint
+		mFlipVerticalButton.setColorFilter(mFlipVerticalHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		// Inform pages of the change.
+		mDocView.toggleFlipVertical();
+	}
+
 	private void setLinkHighlight(boolean highlight) {
 		mLinkHighlight = highlight;
 		// LINK_COLOR tint
@@ -666,8 +706,7 @@ public class DocumentActivity extends Activity
 			// Update page number text and slider
 			int index = mDocView.getDisplayedViewIndex();
 			updatePageNumView(index);
-			mPageSlider.setMax((core.countPages()-1)*mPageSliderRes);
-			mPageSlider.setProgress(index * mPageSliderRes);
+            updatePageSlider(index);
 			if (mTopBarMode == TopBarMode.Search) {
 				mSearchText.requestFocus();
 				showKeyboard();
@@ -752,9 +791,18 @@ public class DocumentActivity extends Activity
 		}
 	}
 
+    private void updatePageSlider(int index) {
+		mPageSlider.setMax((core.countPages()-1)*mPageSliderRes);
+        if (!mTextLeftHighlight)
+			mPageSlider.setProgress(index * mPageSliderRes);
+        else
+			mPageSlider.setProgress((core.countPages() - 1 - index) * mPageSliderRes);
+
+    }
+
 	private void updatePageNumView(int index) {
-		if (core == null)
-			return;
+        if (core == null)
+            return;
 		mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", index + 1, core.countPages()));
 	}
 
@@ -764,6 +812,8 @@ public class DocumentActivity extends Activity
 		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
+        mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
+        mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
 		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);
