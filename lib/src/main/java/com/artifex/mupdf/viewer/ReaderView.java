@@ -37,12 +37,12 @@ public class ReaderView
 	private static final int MOVING_DOWN       = 4;
 
 	private static final int FLING_MARGIN      = 100;
-	private static final int GAP               = 20;
+	private static final int GAP               = 0;
 
 	private static final float MIN_SCALE        = 1.0f;
 	private static final float MAX_SCALE        = 64.0f;
 
-	private static final boolean HORIZONTAL_SCROLLING = true;
+    // private static final boolean HORIZONTAL_SCROLLING = true;
 
 	private PageAdapter           mAdapter;
 	protected int               mCurrent;    // Adapter's index for the current view
@@ -66,6 +66,8 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
+    private boolean       mTextLeft = false;
+    private boolean       mHorizontalScrolling = true;
 
 	protected Stack<Integer> mHistory;
 
@@ -396,9 +398,9 @@ public class ReaderView
 			Rect bounds = getScrollBounds(v);
 			switch(directionOfTravel(velocityX, velocityY)) {
 			case MOVING_LEFT:
-				if (HORIZONTAL_SCROLLING && bounds.left >= 0) {
+				if (mHorizontalScrolling && bounds.left >= 0) {
 					// Fling off to the left bring next view onto screen
-					View vl = mChildViews.get(mCurrent+1);
+					View vl = mChildViews.get(mTextLeft ? mCurrent-1 : mCurrent+1);
 
 					if (vl != null) {
 						slideViewOntoScreen(vl);
@@ -407,9 +409,9 @@ public class ReaderView
 				}
 				break;
 			case MOVING_UP:
-				if (!HORIZONTAL_SCROLLING && bounds.top >= 0) {
+				if (!mHorizontalScrolling && bounds.top >= 0) {
 					// Fling off to the top bring next view onto screen
-					View vl = mChildViews.get(mCurrent+1);
+					View vl = mChildViews.get(mTextLeft ? mCurrent-1 : mCurrent+1);
 
 					if (vl != null) {
 						slideViewOntoScreen(vl);
@@ -418,9 +420,9 @@ public class ReaderView
 				}
 				break;
 			case MOVING_RIGHT:
-				if (HORIZONTAL_SCROLLING && bounds.right <= 0) {
+				if (mHorizontalScrolling && bounds.right <= 0) {
 					// Fling off to the right bring previous view onto screen
-					View vr = mChildViews.get(mCurrent-1);
+					View vr = mChildViews.get(mTextLeft ? mCurrent+1 : mCurrent-1);
 
 					if (vr != null) {
 						slideViewOntoScreen(vr);
@@ -429,9 +431,9 @@ public class ReaderView
 				}
 				break;
 			case MOVING_DOWN:
-				if (!HORIZONTAL_SCROLLING && bounds.bottom <= 0) {
+				if (!mHorizontalScrolling && bounds.bottom <= 0) {
 					// Fling off to the bottom bring previous view onto screen
-					View vr = mChildViews.get(mCurrent-1);
+					View vr = mChildViews.get(mTextLeft ? mCurrent+1 : mCurrent-1);
 
 					if (vr != null) {
 						slideViewOntoScreen(vr);
@@ -541,7 +543,10 @@ public class ReaderView
 		}
 		if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
 			mUserInteracting = false;
-
+            // on vertical flip, stay layout on touch move
+            if (!mHorizontalScrolling)
+                return true;
+            //
 			View v = mChildViews.get(mCurrent);
 			if (v != null) {
 				if (mScroller.isFinished()) {
@@ -602,10 +607,12 @@ public class ReaderView
 				cvOffset = subScreenSizeOffset(cv);
 				// cv.getRight() may be out of date with the current scale
 				// so add left to the measured width for the correct position
-				if (HORIZONTAL_SCROLLING)
+				if (mHorizontalScrolling)
 					move = cv.getLeft() + cv.getMeasuredWidth() + cvOffset.x + GAP/2 + mXScroll < getWidth()/2;
 				else
 					move = cv.getTop() + cv.getMeasuredHeight() + cvOffset.y + GAP/2 + mYScroll < getHeight()/2;
+
+                if (!mTextLeft) {
 				if (move && mCurrent + 1 < mAdapter.getCount()) {
 					postUnsettle(cv);
 					// post to invoke test for end of animation
@@ -616,11 +623,8 @@ public class ReaderView
 					mCurrent++;
 					onMoveToChild(mCurrent);
 				}
-
-				if (HORIZONTAL_SCROLLING)
-					move = cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2;
-				else
-					move = cv.getTop() - cvOffset.y - GAP/2 + mYScroll >= getHeight()/2;
+                }
+                else {
 				if (move && mCurrent > 0) {
 					postUnsettle(cv);
 					// post to invoke test for end of animation
@@ -631,6 +635,36 @@ public class ReaderView
 					mCurrent--;
 					onMoveToChild(mCurrent);
 				}
+                }
+
+				if (mHorizontalScrolling)
+					move = cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2;
+				else
+					move = cv.getTop() - cvOffset.y - GAP/2 + mYScroll >= getHeight()/2;
+                if (!mTextLeft) {
+				if (move && mCurrent > 0) {
+					postUnsettle(cv);
+					// post to invoke test for end of animation
+					// where we must set hq area for the new current view
+					mStepper.prod();
+
+					onMoveOffChild(mCurrent);
+					mCurrent--;
+					onMoveToChild(mCurrent);
+				}
+                }
+                else {
+				if (move && mCurrent + 1 < mAdapter.getCount()) {
+					postUnsettle(cv);
+					// post to invoke test for end of animation
+					// where we must set hq area for the new current view
+					mStepper.prod();
+
+					onMoveOffChild(mCurrent);
+					mCurrent++;
+					onMoveToChild(mCurrent);
+				}
+                }
 			}
 
 			// Remove not needed children and hold them for reuse
@@ -650,7 +684,7 @@ public class ReaderView
 				}
 			}
 		} else {
-			mResetLayout = false;
+			// mResetLayout = false;
 			mXScroll = mYScroll = 0;
 
 			// Remove all children and hold them for reuse
@@ -691,30 +725,45 @@ public class ReaderView
 
 		if (!mUserInteracting && mScroller.isFinished()) {
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
+            // on vertical flip, stay layout on touch move
+            if (!mHorizontalScrolling && !mResetLayout) {
+                if (mCurrent == 0) {
+                    if ((!mTextLeft && corr.y > 0) || (mTextLeft && corr.y < 0)) corr.y = 0;
+                }
+                else if (mCurrent == mAdapter.getCount() - 1) {
+                    if ((!mTextLeft && corr.y < 0) || (mTextLeft && corr.y > 0)) corr.y = 0;
+                }
+                else {
+                    corr.y = 0;
+                }
+            }
+            //
 			cvRight += corr.x;
 			cvLeft += corr.x;
 			cvTop += corr.y;
 			cvBottom += corr.y;
-		} else if (HORIZONTAL_SCROLLING && cv.getMeasuredHeight() <= getHeight()) {
+		} else if (mHorizontalScrolling && cv.getMeasuredHeight() <= getHeight()) {
 			// When the current view is as small as the screen in height, clamp
 			// it vertically
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
 			cvTop += corr.y;
 			cvBottom += corr.y;
-		} else if (!HORIZONTAL_SCROLLING && cv.getMeasuredWidth() <= getWidth()) {
+		} else if (!mHorizontalScrolling && cv.getMeasuredWidth() <= getWidth()) {
 			// When the current view is as small as the screen in width, clamp
 			// it horizontally
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
 			cvRight += corr.x;
 			cvLeft += corr.x;
 		}
+        mResetLayout = false;
 
 		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
 
 		if (mCurrent > 0) {
+            if (!mTextLeft) {
 			View lv = getOrCreateChild(mCurrent - 1);
 			Point leftOffset = subScreenSizeOffset(lv);
-			if (HORIZONTAL_SCROLLING)
+			if (mHorizontalScrolling)
 			{
 				int gap = leftOffset.x + GAP + cvOffset.x;
 				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
@@ -728,12 +777,11 @@ public class ReaderView
 						(cvLeft + cvRight + lv.getMeasuredWidth())/2,
 						cvTop - gap);
 			}
-		}
-
-		if (mCurrent + 1 < mAdapter.getCount()) {
-			View rv = getOrCreateChild(mCurrent + 1);
+            }
+            else {
+			View rv = getOrCreateChild(mCurrent - 1);
 			Point rightOffset = subScreenSizeOffset(rv);
-			if (HORIZONTAL_SCROLLING)
+			if (mHorizontalScrolling)
 			{
 				int gap = cvOffset.x + GAP + rightOffset.x;
 				rv.layout(cvRight + gap,
@@ -747,6 +795,46 @@ public class ReaderView
 						(cvLeft + cvRight + rv.getMeasuredWidth())/2,
 						cvBottom + gap + rv.getMeasuredHeight());
 			}
+            }
+		}
+
+		if (mCurrent + 1 < mAdapter.getCount()) {
+            if (!mTextLeft) {
+			View rv = getOrCreateChild(mCurrent + 1);
+			Point rightOffset = subScreenSizeOffset(rv);
+			if (mHorizontalScrolling)
+			{
+				int gap = cvOffset.x + GAP + rightOffset.x;
+				rv.layout(cvRight + gap,
+						(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+						cvRight + rv.getMeasuredWidth() + gap,
+						(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+			} else {
+				int gap = cvOffset.y + GAP + rightOffset.y;
+				rv.layout((cvLeft + cvRight - rv.getMeasuredWidth())/2,
+						cvBottom + gap,
+						(cvLeft + cvRight + rv.getMeasuredWidth())/2,
+						cvBottom + gap + rv.getMeasuredHeight());
+			}
+            }
+            else {
+			View lv = getOrCreateChild(mCurrent + 1);
+			Point leftOffset = subScreenSizeOffset(lv);
+			if (mHorizontalScrolling)
+			{
+				int gap = leftOffset.x + GAP + cvOffset.x;
+				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
+						(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+						cvLeft - gap,
+						(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+			} else {
+				int gap = leftOffset.y + GAP + cvOffset.y;
+				lv.layout((cvLeft + cvRight - lv.getMeasuredWidth())/2,
+						cvTop - lv.getMeasuredHeight() - gap,
+						(cvLeft + cvRight + lv.getMeasuredWidth())/2,
+						cvTop - gap);
+			}
+            }
 		}
 
 		invalidate();
@@ -874,8 +962,9 @@ public class ReaderView
 	}
 
 	private Point subScreenSizeOffset(View v) {
-		return new Point(Math.max((getWidth() - v.getMeasuredWidth())/2, 0),
-				Math.max((getHeight() - v.getMeasuredHeight())/2, 0));
+        return new Point(0,0);
+		// return new Point(Math.max((getWidth() - v.getMeasuredWidth())/2, 0),
+		// 		Math.max((getHeight() - v.getMeasuredHeight())/2, 0));
 	}
 
 	private static int directionOfTravel(float vx, float vy) {
@@ -920,19 +1009,35 @@ public class ReaderView
 					onTapMainDocArea();
 				}
 			} else if (e.getX() < tapPageMargin) {
-				smartMoveBackwards();
+				if (mTextLeft) smartMoveForwards(); else smartMoveBackwards();
 			} else if (e.getX() > super.getWidth() - tapPageMargin) {
-				smartMoveForwards();
+				if (mTextLeft) smartMoveBackwards(); else smartMoveForwards();
 			} else if (e.getY() < tapPageMargin) {
-				smartMoveBackwards();
+				if (mTextLeft) smartMoveForwards(); else smartMoveBackwards();
 			} else if (e.getY() > super.getHeight() - tapPageMargin) {
-				smartMoveForwards();
+				if (mTextLeft) smartMoveBackwards(); else smartMoveForwards();
 			} else {
 				onTapMainDocArea();
 			}
 		}
 		return true;
 	}
+
+    public void toggleTextLeft() {
+        mTextLeft = !mTextLeft;
+		requestLayout();
+    }
+
+    public void toggleFlipVertical() {
+        mHorizontalScrolling = !mHorizontalScrolling;
+        mScale = 1.0f;
+        if (!mHorizontalScrolling) {
+            float sw = (float)getWidth();
+            float vw = (float)mChildViews.get(mCurrent).getMeasuredWidth();
+            if (sw > vw) mScale = sw / vw;
+        }
+		requestLayout();
+    }
 
 	protected void onChildSetup(int i, View v) {
 		if (SearchTaskResult.get() != null

@@ -7,3 +7,6 @@ build
 local.properties
 MAVEN
 tags
+.project
+.settings/
+app/gradle.properties
