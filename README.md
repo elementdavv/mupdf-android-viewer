@@ -1,3 +1,7 @@
+# Enhancement
+- Add support of flipping page in vertical direction.
+- Add support of text direction from right to left
+
 # MuPDF Android Viewer
 
 This project is a simplified variant of the full MuPDF Android app that only
