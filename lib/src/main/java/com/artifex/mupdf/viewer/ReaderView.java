@@ -55,7 +55,7 @@ public class ReaderView
 				  mViewCache = new LinkedList<View>();
 	private boolean           mUserInteracting;  // Whether the user is interacting
 	private boolean           mScaling;    // Whether the user is currently pinch zooming
-	private float             mScale     = 1.0f;
+	private float             mScale     = MIN_SCALE;
 	private int               mXScroll;    // Scroll amounts recorded from events.
 	private int               mYScroll;    // and then accounted for in onLayout
 	private GestureDetector mGestureDetector;
@@ -68,6 +68,7 @@ public class ReaderView
 	private float		  mLastScaleFocusY;
     private boolean       mTextLeft = false;
     private boolean       mHorizontalScrolling = true;
+    private float         mMinScale = MIN_SCALE;
 
 	protected Stack<Integer> mHistory;
 
@@ -336,7 +337,7 @@ public class ReaderView
 	public void refresh() {
 		mResetLayout = true;
 
-		mScale = 1.0f;
+		mScale = mMinScale;
 		mXScroll = mYScroll = 0;
 
 		/* All page views need recreating since both page and screen has changed size,
@@ -484,7 +485,7 @@ public class ReaderView
 
 	public boolean onScale(ScaleGestureDetector detector) {
 		float previousScale = mScale;
-		mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
+		mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), mMinScale), MAX_SCALE);
 
 		{
 			float factor = mScale/previousScale;
@@ -1030,12 +1031,13 @@ public class ReaderView
 
     public void toggleFlipVertical() {
         mHorizontalScrolling = !mHorizontalScrolling;
-        mScale = 1.0f;
+        mScale = MIN_SCALE;
         if (!mHorizontalScrolling) {
             float sw = (float)getWidth();
             float vw = (float)mChildViews.get(mCurrent).getMeasuredWidth();
             if (sw > vw) mScale = sw / vw;
         }
+        mMinScale = mScale;
 		requestLayout();
     }
 
