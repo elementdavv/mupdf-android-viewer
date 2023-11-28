@@ -55,7 +55,7 @@ public class ReaderView
 				  mViewCache = new LinkedList<View>();
 	private boolean           mUserInteracting;  // Whether the user is interacting
 	private boolean           mScaling;    // Whether the user is currently pinch zooming
-	private float             mScale     = MIN_SCALE;
+	private float             mScale     = 1.0f;
 	private int               mXScroll;    // Scroll amounts recorded from events.
 	private int               mYScroll;    // and then accounted for in onLayout
 	private GestureDetector mGestureDetector;
@@ -68,7 +68,6 @@ public class ReaderView
 	private float		  mLastScaleFocusY;
     private boolean       mTextLeft = false;
     private boolean       mHorizontalScrolling = true;
-    private float         mMinScale = MIN_SCALE;
 
 	protected Stack<Integer> mHistory;
 
@@ -337,7 +336,7 @@ public class ReaderView
 	public void refresh() {
 		mResetLayout = true;
 
-		mScale = mMinScale;
+		mScale = 1.0f;
 		mXScroll = mYScroll = 0;
 
 		/* All page views need recreating since both page and screen has changed size,
@@ -485,7 +484,7 @@ public class ReaderView
 
 	public boolean onScale(ScaleGestureDetector detector) {
 		float previousScale = mScale;
-		mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), mMinScale), MAX_SCALE);
+		mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
 
 		{
 			float factor = mScale/previousScale;
@@ -898,8 +897,12 @@ public class ReaderView
 		v.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
 
 		// Work out a scale that will fit it to this view
-		float scale = Math.min((float)getWidth()/(float)v.getMeasuredWidth(),
+        float scale;
+        if (mHorizontalScrolling)
+		    scale = Math.min((float)getWidth()/(float)v.getMeasuredWidth(),
 					(float)getHeight()/(float)v.getMeasuredHeight());
+        else
+		    scale = (float)getWidth()/(float)v.getMeasuredWidth();
 		// Use the fitting values scaled by our current scale factor
 		v.measure(View.MeasureSpec.EXACTLY | (int)(v.getMeasuredWidth()*scale*mScale),
 				View.MeasureSpec.EXACTLY | (int)(v.getMeasuredHeight()*scale*mScale));
@@ -1031,13 +1034,6 @@ public class ReaderView
 
     public void toggleFlipVertical() {
         mHorizontalScrolling = !mHorizontalScrolling;
-        mScale = MIN_SCALE;
-        if (!mHorizontalScrolling) {
-            float sw = (float)getWidth();
-            float vw = (float)mChildViews.get(mCurrent).getMeasuredWidth();
-            if (sw > vw) mScale = sw / vw;
-        }
-        mMinScale = mScale;
 		requestLayout();
     }
 
