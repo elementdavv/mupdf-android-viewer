@@ -1,6 +1,7 @@
 # Enhancement
-- Add support of flipping page in vertical direction.
-- Add support of text direction from right to left
+- Add support of page flipping in vertical direction.
+- Add support of text direction of right to left. This is for the convenience for old chinese books.
+- Add support of single column mode. It will split a double-page spread image from a scanned pdf book into two seperated pages. In the implemention, the first and last page will not be splitted.
 
 # MuPDF Android Viewer
 
