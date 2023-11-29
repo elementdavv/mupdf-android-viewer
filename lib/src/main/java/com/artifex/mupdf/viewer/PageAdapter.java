@@ -52,15 +52,20 @@ public class PageAdapter extends BaseAdapter {
 	public synchronized View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;
 		if (convertView == null) {
-			if (mSharedHqBm == null || mSharedHqBm.getWidth() != parent.getWidth() || mSharedHqBm.getHeight() != parent.getHeight())
+            int pw = parent.getWidth();
+            int ph = parent.getHeight();
+            if (mCore.isSingleColumn() && position > 0 && position < (mCore.countPages() - 1)) {
+                pw *= 2;
+            }
+			if (mSharedHqBm == null || mSharedHqBm.getWidth() != pw || mSharedHqBm.getHeight() != ph)
 			{
-				if (parent.getWidth() > 0 && parent.getHeight() > 0)
-					mSharedHqBm = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
+				if (pw > 0 && ph > 0)
+					mSharedHqBm = Bitmap.createBitmap(pw, ph, Bitmap.Config.ARGB_8888);
 				else
 					mSharedHqBm = null;
 			}
 
-			pageView = new PageView(mContext, mCore, new Point(parent.getWidth(), parent.getHeight()), mSharedHqBm);
+			pageView = new PageView(mContext, mCore, new Point(pw, ph), mSharedHqBm);
 		} else {
 			pageView = (PageView) convertView;
 		}

@@ -350,6 +350,7 @@ public class ReaderView
 		}
 		mChildViews.clear();
 		mViewCache.clear();
+        mHistory.clear();
 
 		requestLayout();
 	}
@@ -1026,6 +1027,22 @@ public class ReaderView
 		}
 		return true;
 	}
+
+    public boolean isWide() {
+        View v = mChildViews.get(mCurrent);
+        return v.getMeasuredWidth() > v.getMeasuredHeight();
+    }
+
+    public void toggleSingleColumn(boolean sc) {
+        if (sc) {
+            mCurrent = (mCurrent * 2) - 1;
+            if (mCurrent < 0) mCurrent = 0;
+        }
+        else {
+            mCurrent = (mCurrent + 1) / 2;
+        }
+        refresh();
+    }
 
     public void toggleTextLeft() {
         mTextLeft = !mTextLeft;
