@@ -82,6 +82,7 @@ public class PageView extends ViewGroup {
 	private       ImageView mPatch;
 	private       Bitmap    mPatchBm;
 	private       CancellableAsyncTask<Void, Boolean> mDrawPatch;
+    private       Bitmap    mColumnBm;
 	private       Quad      mSearchBoxes[][];
 	protected     Link      mLinks[];
 	private       View      mSearchView;
@@ -168,6 +169,11 @@ public class PageView extends ViewGroup {
 		if (mPatchBm!=null)
 			mPatchBm.recycle();
 		mPatchBm = null;
+
+        if (mColumnBm!=null)
+            mColumnBm.recycle();
+        mColumnBm = null;
+
 	}
 
 	public void blank(int page) {
@@ -302,7 +308,20 @@ public class PageView extends ViewGroup {
 				mBusyIndicator = null;
 				if (result.booleanValue()) {
 					clearRenderError();
-					mEntire.setImageBitmap(mEntireBm);
+                    if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
+                        int ci;
+                        if (mPageNumber % 2 == 1)
+                            ci = 0;
+                        else {
+                            ci = mSize.x;
+                            if (ci + mSize.x > mEntireBm.getWidth())
+                                ci = mEntireBm.getWidth() - mSize.x;
+                        }
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, ci, 0, mSize.x, mSize.y);
+					    mEntire.setImageBitmap(mColumnBm);
+                    }
+                    else
+					    mEntire.setImageBitmap(mEntireBm);
 					mEntire.invalidate();
 				} else {
 					setRenderError("Error rendering page");
@@ -509,7 +528,19 @@ public class PageView extends ViewGroup {
 						mPatchViewSize = patchViewSize;
 						mPatchArea = patchArea;
 						clearRenderError();
-						mPatch.setImageBitmap(mPatchBm);
+                        if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
+                            int ci;
+                            if (mPageNumber % 2 == 1)
+                                ci = 0;
+                            else
+                                ci = patchViewSize.x;
+                                if (ci + patchViewSize.x > mPatchBm.getWidth())
+                                    ci = mPatchBm.getWidth() - patchViewSize.x;
+                            mColumnBm = Bitmap.createBitmap(mPatchBm, ci, 0, patchViewSize.x, patchViewSize.y);
+					        mPatch.setImageBitmap(mColumnBm);
+                        }
+                        else
+					        mPatch.setImageBitmap(mPatchBm);
 						mPatch.invalidate();
 						//requestLayout();
 						// Calling requestLayout here doesn't lead to a later call to layout. No idea
@@ -543,7 +574,20 @@ public class PageView extends ViewGroup {
 			public void onPostExecute(Boolean result) {
 				if (result.booleanValue()) {
 					clearRenderError();
-					mEntire.setImageBitmap(mEntireBm);
+                    if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
+                        int ci;
+                        if (mPageNumber % 2 == 1)
+                            ci = 0;
+                        else {
+                            ci = mSize.x;
+                            if (ci + mSize.x > mEntireBm.getWidth())
+                                ci = mEntireBm.getWidth() - mSize.x;
+                        }
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, ci, 0, mSize.x, mSize.y);
+					    mEntire.setImageBitmap(mColumnBm);
+                    }
+                    else
+					    mEntire.setImageBitmap(mEntireBm);
 					mEntire.invalidate();
 				} else {
 					setRenderError("Error updating page");

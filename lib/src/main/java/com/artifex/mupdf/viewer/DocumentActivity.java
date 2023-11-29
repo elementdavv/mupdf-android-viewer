@@ -75,6 +75,7 @@ public class DocumentActivity extends Activity
 	private SeekBar      mPageSlider;
 	private int          mPageSliderRes;
 	private TextView     mPageNumberView;
+    private ImageButton  mSingleColumnButton;
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
 	private ImageButton  mSearchButton;
@@ -88,6 +89,7 @@ public class DocumentActivity extends Activity
 	private EditText     mSearchText;
 	private SearchTask   mSearchTask;
 	private AlertDialog.Builder mAlertBuilder;
+    private boolean    mSingleColumnHighlight = false;
     private boolean    mTextLeftHighlight = false;
     private boolean    mFlipVerticalHighlight = false;
 	private boolean    mLinkHighlight = false;
@@ -346,7 +348,7 @@ public class DocumentActivity extends Activity
 	public void relayoutDocument() {
 		int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
 		mFlatOutline = null;
-		mDocView.mHistory.clear();
+		// mDocView.mHistory.clear();
 		mDocView.refresh();
 		mDocView.setDisplayedViewIndex(loc);
 	}
@@ -450,6 +452,12 @@ public class DocumentActivity extends Activity
 				searchModeOn();
 			}
 		});
+
+        mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleSingleColumnHighlight();
+            }
+        });
 
         mTextLeftButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -671,15 +679,35 @@ public class DocumentActivity extends Activity
 		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
 	}
 
+    private void toggleSingleColumnHighlight() {
+        int index;
+        if (!mSingleColumnHighlight) {
+		    index = mDocView.getDisplayedViewIndex();
+            if (!mDocView.isWide()) return;
+            if (index == 0 || index == (core.countPages() - 1)) return;
+        }
+        mSingleColumnHighlight = !mSingleColumnHighlight;
+		// COLOR tint
+		mSingleColumnButton.setColorFilter(mSingleColumnHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		// Inform pages of the change.
+        core.toggleSingleColumn(mSingleColumnHighlight);
+		mDocView.toggleSingleColumn(mSingleColumnHighlight);
+		int smax = Math.max(core.countPages()-1,1);
+		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
+		index = mDocView.getDisplayedViewIndex();
+		updatePageNumView(index);
+        updatePageSlider(index);
+    }
+
     private void toggleTextLeftHighlight() {
 		mTextLeftHighlight = !mTextLeftHighlight;
 		// COLOR tint
 		mTextLeftButton.setColorFilter(mTextLeftHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		// Inform pages of the change.
+		mDocView.toggleTextLeft();
 		int index = mDocView.getDisplayedViewIndex();
 		updatePageNumView(index);
         updatePageSlider(index);
-		// Inform pages of the change.
-		mDocView.toggleTextLeft();
 	}
 
     private void toggleFlipVerticalHighlight() {
@@ -812,6 +840,7 @@ public class DocumentActivity extends Activity
 		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
+        mSingleColumnButton = (ImageButton)mButtonsView.findViewById(R.id.singleColumnButton);
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);

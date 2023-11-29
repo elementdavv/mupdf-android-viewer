@@ -31,6 +31,7 @@ public class MuPDFCore
 	private float pageWidth;
 	private float pageHeight;
 	private DisplayList displayList;
+    private boolean singleColumnMode = false;
 
 	/* Default to "A Format" pocket book size. */
 	private int layoutW = 312;
@@ -68,6 +69,7 @@ public class MuPDFCore
 
 	public synchronized int layout(int oldPage, int w, int h, int em) {
 		if (w != layoutW || h != layoutH || em != layoutEM) {
+            oldPage = realPage(oldPage);
 			System.out.println("LAYOUT: " + w + "," + h);
 			layoutW = w;
 			layoutH = h;
@@ -75,7 +77,7 @@ public class MuPDFCore
 			long mark = doc.makeBookmark(doc.locationFromPageNumber(oldPage));
 			doc.layout(layoutW, layoutH, layoutEM);
 			currentPage = -1;
-			pageCount = doc.countPages();
+            correctPageCount();
 			outline = null;
 			try {
 				outline = doc.loadOutline();
@@ -103,16 +105,20 @@ public class MuPDFCore
 			page = null;
 			pageWidth = 0;
 			pageHeight = 0;
-			currentPage = -1;
+			currentPage = pageNum;
 
 			if (doc != null) {
+                pageNum = realPage(pageNum);
 				page = doc.loadPage(pageNum);
 				Rect b = page.getBounds();
 				pageWidth = b.x1 - b.x0;
+                if (singleColumnMode && currentPage > 0 && currentPage < (pageCount - 1)) {
+                    pageWidth = (pageWidth + 1) / 2;
+                }
 				pageHeight = b.y1 - b.y0;
 			}
 
-			currentPage = pageNum;
+			// currentPage = pageNum;
 		}
 	}
 
@@ -150,6 +156,10 @@ public class MuPDFCore
 		if (displayList == null || page == null)
 			return;
 
+        if (singleColumnMode && currentPage > 0 && currentPage < (pageCount - 1)) {
+            pageW *= 2;
+        }
+
 		float zoom = resolution / 72;
 		Matrix ctm = new Matrix(zoom, zoom);
 		RectI bbox = new RectI(page.getBounds().transform(ctm));
@@ -174,13 +184,19 @@ public class MuPDFCore
 		drawPage(bm, pageNum, pageW, pageH, patchX, patchY, patchW, patchH, cookie);
 	}
 
+    public void toggleSingleColumn(boolean sc) {
+        singleColumnMode = sc;
+        correctPageCount();
+    }
+
 	public synchronized Link[] getPageLinks(int pageNum) {
 		gotoPage(pageNum);
 		return page != null ? page.getLinks() : null;
 	}
 
 	public synchronized int resolveLink(Link link) {
-		return doc.pageNumberFromLocation(doc.resolveLink(link));
+		int p = doc.pageNumberFromLocation(doc.resolveLink(link));
+        return correctPage(p);
 	}
 
 	public synchronized Quad[][] searchPage(int pageNum, String text) {
@@ -203,6 +219,7 @@ public class MuPDFCore
 		for (Outline node : list) {
 			if (node.title != null) {
 				int page = doc.pageNumberFromLocation(doc.resolveLink(node));
+                page = correctPage(page);
 				result.add(new OutlineActivity.Item(indent + node.title, page));
 			}
 			if (node.down != null)
@@ -215,6 +232,32 @@ public class MuPDFCore
 		flattenOutlineNodes(result, outline, "");
 		return result;
 	}
+
+    public boolean isSingleColumn() {
+        return singleColumnMode;
+    }
+
+    private void correctPageCount() {
+        if (singleColumnMode)
+            // divide every page into 2 pages, except first and last page
+		    pageCount = doc.countPages() * 2 - 2;
+        else
+		    pageCount = doc.countPages();
+    }
+
+    private int correctPage(int p) {
+        if (singleColumnMode) {
+            p = (p * 2) - 1;
+            if (p < 0) p = 0;
+        }
+        return p;
+    }
+
+    private int realPage(int p) {
+        if (singleColumnMode)
+            return (p + 1) / 2;
+        return p;
+    }
 
 	public synchronized boolean needsPassword() {
 		return doc.needsPassword();

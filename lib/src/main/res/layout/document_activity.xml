@@ -36,6 +36,14 @@
 				android:textColor="@android:color/white"
 				/>
 			<ImageButton
+				android:id="@+id/singleColumnButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@drawable/button"
+				android:src="@drawable/ic_single_column_white_24dp"
+				/>
+
+			<ImageButton
 				android:id="@+id/textLeftButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
