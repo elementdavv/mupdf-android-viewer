@@ -310,16 +310,9 @@ public class PageView extends ViewGroup {
 				mBusyIndicator = null;
 				if (result.booleanValue()) {
 					clearRenderError();
-                    if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
-                        int ci;
-                        if (mPageNumber % 2 == 1)
-                            ci = 0;
-                        else {
-                            ci = mSize.x;
-                            if (ci + mSize.x > mEntireBm.getWidth())
-                                ci = mEntireBm.getWidth() - mSize.x;
-                        }
-                        mColumnBm = Bitmap.createBitmap(mEntireBm, ci, 0, mSize.x, mSize.y);
+                    if (mCore.isSplitPage(mPageNumber)) {
+                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mSize.x, mSize.y);
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -353,7 +346,7 @@ public class PageView extends ViewGroup {
                                 float ulx = q.ul_x * scale;
                                 float lrx = q.lr_x * scale;
                                 float llx = q.ll_x * scale;
-                                if (isSplit()) {
+                                if (mCore.isSplitPage(mPageNumber)) {
                                     if (mPageNumber % 2 == 0) {
                                         if (urx < mSize.x) continue;
                                         urx -= mSize.x;
@@ -379,7 +372,7 @@ public class PageView extends ViewGroup {
 						for (Link link : mLinks) {
                             float x0 = link.getBounds().x0*scale;
                             float x1 = link.getBounds().x1*scale;
-                            if (isSplit()) {
+                            if (mCore.isSplitPage(mPageNumber)) {
                                 if (mPageNumber % 2 == 0) {
                                     x0 -= mSize.x;
                                     x1 -= mSize.x;
@@ -554,15 +547,9 @@ public class PageView extends ViewGroup {
 						mPatchViewSize = patchViewSize;
 						mPatchArea = patchArea;
 						clearRenderError();
-                        if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
-                            int ci;
-                            if (mPageNumber % 2 == 1)
-                                ci = 0;
-                            else
-                                ci = patchViewSize.x;
-                                if (ci + patchViewSize.x > mPatchBm.getWidth())
-                                    ci = mPatchBm.getWidth() - patchViewSize.x;
-                            mColumnBm = Bitmap.createBitmap(mPatchBm, ci, 0, patchViewSize.x, patchViewSize.y);
+                        if (mCore.isSplitPage(mPageNumber)) {
+                            int cx = getColumnX(patchViewSize.x, mPatchBm.getWidth());
+                            mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, patchViewSize.x, patchViewSize.y);
 					        mPatch.setImageBitmap(mColumnBm);
                         }
                         else
@@ -600,16 +587,9 @@ public class PageView extends ViewGroup {
 			public void onPostExecute(Boolean result) {
 				if (result.booleanValue()) {
 					clearRenderError();
-                    if (mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1)) {
-                        int ci;
-                        if (mPageNumber % 2 == 1)
-                            ci = 0;
-                        else {
-                            ci = mSize.x;
-                            if (ci + mSize.x > mEntireBm.getWidth())
-                                ci = mEntireBm.getWidth() - mSize.x;
-                        }
-                        mColumnBm = Bitmap.createBitmap(mEntireBm, ci, 0, mSize.x, mSize.y);
+                    if (mCore.isSplitPage(mPageNumber)) {
+                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mSize.x, mSize.y);
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -671,7 +651,7 @@ public class PageView extends ViewGroup {
 	}
 
 	public int hitLink(float x, float y) {
-        if (isSplit()) {
+        if (mCore.isSplitPage(mPageNumber)) {
             if (mPageNumber % 2 == 0) {
                 x += mSize.x;
             }
@@ -745,7 +725,9 @@ public class PageView extends ViewGroup {
 		}
 	}
 
-    private boolean isSplit() {
-        return mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1);
+    private int getColumnX(int sx, int bmw) {
+        if (mPageNumber % 2 == 1) return 0;
+        if (2 * sx > bmw) return bmw - sx;
+        return sx;
     }
 }
