@@ -113,7 +113,7 @@ public class MuPDFCore
 				page = doc.loadPage(pageNum);
 				Rect b = page.getBounds();
 				pageWidth = b.x1 - b.x0;
-                if (singleColumnMode && currentPage > 0 && currentPage < (pageCount - 1)) {
+                if (isSplitPage(currentPage)) {
                     pageWidth = (pageWidth + 1) / 2;
                 }
 				pageHeight = b.y1 - b.y0;
@@ -157,7 +157,7 @@ public class MuPDFCore
 		if (displayList == null || page == null)
 			return;
 
-        if (singleColumnMode && currentPage > 0 && currentPage < (pageCount - 1)) {
+        if (isSplitPage(currentPage)) {
             pageW *= 2;
         }
 
@@ -232,8 +232,8 @@ public class MuPDFCore
 		return result;
 	}
 
-    public boolean isSingleColumn() {
-        return singleColumnMode;
+    public boolean isSplitPage(int page) {
+        return singleColumnMode && page > 0 && page < (pageCount - 1);
     }
 
     private void correctPageCount() {

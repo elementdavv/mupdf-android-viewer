@@ -56,7 +56,7 @@ public class PageAdapter extends BaseAdapter {
             // screen width and height
             int pw = parent.getWidth();
             int ph = parent.getHeight();
-            if (mCore.isSingleColumn() && position > 0 && position < (mCore.countPages() - 1)) {
+            if (mCore.isSplitPage(position)) {
                 pw *= 2;
             }
 			if (mSharedHqBm == null || mSharedHqBm.getWidth() != pw || mSharedHqBm.getHeight() != ph)
