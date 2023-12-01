@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
@@ -100,7 +100,7 @@ public class DocumentActivity extends Activity
 	private boolean mReturnToLibraryActivity = false;
 
 	protected int mDisplayDPI;
-	private int mLayoutEM = 10;
+	private int mLayoutEM;      // read from prefs
 	private int mLayoutW = 312;
 	private int mLayoutH = 504;
 
@@ -420,7 +420,7 @@ public class DocumentActivity extends Activity
 
 		// Set the file-name text
 		String docTitle = core.getTitle();
-		if (docTitle != null)
+		if (docTitle != null && !"".equals(docTitle))
 			mDocNameView.setText(docTitle);
 		else
 			mDocNameView.setText(mDocTitle);
@@ -557,8 +557,13 @@ public class DocumentActivity extends Activity
 					else if (id == R.id.action_layout_14pt) mLayoutEM = 14;
 					else if (id == R.id.action_layout_15pt) mLayoutEM = 15;
 					else if (id == R.id.action_layout_16pt) mLayoutEM = 16;
-					if (oldLayoutEM != mLayoutEM)
+					if (oldLayoutEM != mLayoutEM) {
 						relayoutDocument();
+			            SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+			            SharedPreferences.Editor edit = prefs.edit();
+                        edit.putInt("layoutem"+mDocKey, mLayoutEM);
+			            edit.apply();
+                    }
 					return true;
 				}
 			});
@@ -590,7 +595,8 @@ public class DocumentActivity extends Activity
 
 		// Reenstate last state if it was recorded
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-		mDocView.setDisplayedViewIndex(prefs.getInt("page"+mDocKey, 0));
+		mDocView.setDisplayedViewIndex(core.correctPage(prefs.getInt("page"+mDocKey, 0)));
+        mLayoutEM = prefs.getInt("layoutem"+mDocKey, 6);
 
 		if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
 			showButtons();
@@ -633,7 +639,7 @@ public class DocumentActivity extends Activity
 			// so it can go in the bundle
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page"+mDocKey, core.realPage(mDocView.getDisplayedViewIndex()));
 			edit.apply();
 		}
 
@@ -654,7 +660,7 @@ public class DocumentActivity extends Activity
 		if (mDocKey != null && mDocView != null) {
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page"+mDocKey, core.realPage(mDocView.getDisplayedViewIndex()));
 			edit.apply();
 		}
 	}
@@ -682,8 +688,8 @@ public class DocumentActivity extends Activity
     private void toggleSingleColumnHighlight() {
         int index;
         if (!mSingleColumnHighlight) {
+            // if (!mDocView.isWide()) return;
 		    index = mDocView.getDisplayedViewIndex();
-            if (!mDocView.isWide()) return;
             if (index == 0 || index == (core.countPages() - 1)) return;
         }
         mSingleColumnHighlight = !mSingleColumnHighlight;
@@ -697,6 +703,7 @@ public class DocumentActivity extends Activity
 		index = mDocView.getDisplayedViewIndex();
 		updatePageNumView(index);
         updatePageSlider(index);
+		mFlatOutline = null;
     }
 
     private void toggleTextLeftHighlight() {

@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -49,9 +49,11 @@ public class PageAdapter extends BaseAdapter {
 		mPageSizes.clear();
 	}
 
+    // the position is correctPage
 	public synchronized View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;
 		if (convertView == null) {
+            // screen width and height
             int pw = parent.getWidth();
             int ph = parent.getHeight();
             if (mCore.isSingleColumn() && position > 0 && position < (mCore.countPages() - 1)) {

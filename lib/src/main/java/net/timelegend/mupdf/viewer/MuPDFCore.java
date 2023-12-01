@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.DisplayList;
@@ -41,7 +41,7 @@ public class MuPDFCore
 	private MuPDFCore(Document doc) {
 		this.doc = doc;
 		doc.layout(layoutW, layoutH, layoutEM);
-		pageCount = doc.countPages();
+        correctPageCount();
 		reflowable = doc.isReflowable();
 		resolution = 160;
 		currentPage = -1;
@@ -84,11 +84,12 @@ public class MuPDFCore
 			} catch (Exception ex) {
 				/* ignore error */
 			}
-			return doc.pageNumberFromLocation(doc.findBookmark(mark));
+			return correctPage(doc.pageNumberFromLocation(doc.findBookmark(mark)));
 		}
 		return oldPage;
 	}
 
+    // the pageNum is correctPage
 	private synchronized void gotoPage(int pageNum) {
 		/* TODO: page cache */
 		if (pageNum > pageCount-1)
@@ -195,8 +196,7 @@ public class MuPDFCore
 	}
 
 	public synchronized int resolveLink(Link link) {
-		int p = doc.pageNumberFromLocation(doc.resolveLink(link));
-        return correctPage(p);
+        return correctPage(doc.pageNumberFromLocation(doc.resolveLink(link)));
 	}
 
 	public synchronized Quad[][] searchPage(int pageNum, String text) {
@@ -218,8 +218,7 @@ public class MuPDFCore
 	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent) {
 		for (Outline node : list) {
 			if (node.title != null) {
-				int page = doc.pageNumberFromLocation(doc.resolveLink(node));
-                page = correctPage(page);
+				int page = correctPage(doc.pageNumberFromLocation(doc.resolveLink(node)));
 				result.add(new OutlineActivity.Item(indent + node.title, page));
 			}
 			if (node.down != null)
@@ -245,7 +244,7 @@ public class MuPDFCore
 		    pageCount = doc.countPages();
     }
 
-    private int correctPage(int p) {
+    public int correctPage(int p) {
         if (singleColumnMode) {
             p = (p * 2) - 1;
             if (p < 0) p = 0;
@@ -253,7 +252,7 @@ public class MuPDFCore
         return p;
     }
 
-    private int realPage(int p) {
+    public int realPage(int p) {
         if (singleColumnMode)
             return (p + 1) / 2;
         return p;
