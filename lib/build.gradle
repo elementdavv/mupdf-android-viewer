@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-group = 'com.artifex.mupdf'
-version = '1.24.4a'
+group = 'net.timelegend.mupdf'
+version = '1.24.4a.1'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'

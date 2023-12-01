@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import android.annotation.SuppressLint;
 import android.os.Build;

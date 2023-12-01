@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 public interface CancellableTaskDefinition <Params, Result>
 {

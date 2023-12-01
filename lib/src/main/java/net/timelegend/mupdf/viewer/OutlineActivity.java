@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import android.app.ListActivity;
 import android.os.Bundle;

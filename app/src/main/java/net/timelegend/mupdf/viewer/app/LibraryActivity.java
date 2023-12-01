@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer.app;
+package net.timelegend.mupdf.viewer.app;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.artifex.mupdf.fitz.Document; /* for file name recognition */
-import com.artifex.mupdf.viewer.DocumentActivity;
+import net.timelegend.mupdf.viewer.DocumentActivity;
 
 public class LibraryActivity extends Activity
 {

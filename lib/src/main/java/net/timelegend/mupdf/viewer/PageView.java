@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
@@ -100,6 +100,7 @@ public class PageView extends ViewGroup {
 		mCore = core;
 		mParentSize = parentSize;
 		setBackgroundColor(BACKGROUND_COLOR);
+        // the parent is correct screen
 		mEntireBm = Bitmap.createBitmap(parentSize.x, parentSize.y, Config.ARGB_8888);
 		mPatchBm = sharedHqBm;
 		mEntireMat = new Matrix();
@@ -227,6 +228,7 @@ public class PageView extends ViewGroup {
 		mErrorIndicator.invalidate();
 	}
 
+    // the page is correctPage
 	public void setPage(int page, PointF size) {
 		// Cancel pending render task
 		if (mDrawEntire != null) {
@@ -347,10 +349,25 @@ public class PageView extends ViewGroup {
 						for (Quad[] searchBox : mSearchBoxes) {
 							for (Quad q : searchBox) {
 								Path path = new Path();
-								path.moveTo(q.ul_x * scale, q.ul_y * scale);
-								path.lineTo(q.ll_x * scale, q.ll_y * scale);
-								path.lineTo(q.lr_x * scale, q.lr_y * scale);
-								path.lineTo(q.ur_x * scale, q.ur_y * scale);
+                                float urx = q.ur_x * scale;
+                                float ulx = q.ul_x * scale;
+                                float lrx = q.lr_x * scale;
+                                float llx = q.ll_x * scale;
+                                if (isSplit()) {
+                                    if (mPageNumber % 2 == 0) {
+                                        if (urx < mSize.x) continue;
+                                        urx -= mSize.x;
+                                        ulx -= mSize.x;
+                                        if (ulx < 0) ulx = 0;
+                                        lrx -= mSize.x;
+                                        llx -= mSize.x;
+                                        if (llx < 0) llx = 0;
+                                    }
+                                }
+								path.moveTo(ulx, q.ul_y * scale);
+								path.lineTo(llx, q.ll_y * scale);
+								path.lineTo(lrx, q.lr_y * scale);
+								path.lineTo(urx, q.ur_y * scale);
 								path.close();
 								canvas.drawPath(path, paint);
 							}
@@ -359,10 +376,19 @@ public class PageView extends ViewGroup {
 
 					if (!mIsBlank && mLinks != null && mHighlightLinks) {
 						paint.setColor(LINK_COLOR);
-						for (Link link : mLinks)
-							canvas.drawRect(link.getBounds().x0*scale, link.getBounds().y0*scale,
-									link.getBounds().x1*scale, link.getBounds().y1*scale,
+						for (Link link : mLinks) {
+                            float x0 = link.getBounds().x0*scale;
+                            float x1 = link.getBounds().x1*scale;
+                            if (isSplit()) {
+                                if (mPageNumber % 2 == 0) {
+                                    x0 -= mSize.x;
+                                    x1 -= mSize.x;
+                                }
+                            }
+							canvas.drawRect(x0, link.getBounds().y0*scale,
+									x1, link.getBounds().y1*scale,
 									paint);
+                        }
 					}
 				}
 			};
@@ -374,8 +400,8 @@ public class PageView extends ViewGroup {
 
 	public void setSearchBoxes(Quad searchBoxes[][]) {
 		mSearchBoxes = searchBoxes;
-		if (mSearchView != null)
-			mSearchView.invalidate();
+		// if (mSearchView != null)
+		// 	mSearchView.invalidate();
 	}
 
 	public void setLinkHighlighting(boolean f) {
@@ -645,6 +671,11 @@ public class PageView extends ViewGroup {
 	}
 
 	public int hitLink(float x, float y) {
+        if (isSplit()) {
+            if (mPageNumber % 2 == 0) {
+                x += mSize.x;
+            }
+        }
 		// Since link highlighting was implemented, the super class
 		// PageView has had sufficient information to be able to
 		// perform this method directly. Making that change would
@@ -713,4 +744,8 @@ public class PageView extends ViewGroup {
 			return null;
 		}
 	}
+
+    private boolean isSplit() {
+        return mCore.isSingleColumn() && mPageNumber > 0 && mPageNumber < (mCore.countPages() - 1);
+    }
 }

@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
-group = 'com.artifex.mupdf'
-version = '1.24.4a'
+group = 'net.timelegend.mupdf'
+version = '1.24.4a.1'
 
 dependencies {
 	if (file('../lib/build.gradle').isFile())
 		api project(':lib')
 	else
-		api 'com.artifex.mupdf:viewer:1.24.4a'
+		api 'net.timelegend.mupdf:viewer:1.24.4a.1'
 }
 
 android {
@@ -15,7 +15,7 @@ android {
 	defaultConfig {
 		minSdkVersion 21
 		targetSdkVersion 33
-		versionName '1.24.4a'
+		versionName '1.24.4a.1'
 		versionCode 151
 	}
 

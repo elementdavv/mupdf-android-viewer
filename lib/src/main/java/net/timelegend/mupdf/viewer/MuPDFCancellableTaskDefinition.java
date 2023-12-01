@@ -1,4 +1,4 @@
-package com.artifex.mupdf.viewer;
+package net.timelegend.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
 
