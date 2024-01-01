@@ -69,7 +69,7 @@ Then install the app on the device:
 
 To start the installed app on the device:
 
-	$ adb shell am start -n com.artifex.chaka.viewer.app/.LibraryActivity
+	$ adb shell am start -n net.timelegend.chaka.viewer.app/.LibraryActivity
 
 To see the error and debugging message log:
 
