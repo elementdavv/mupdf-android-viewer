@@ -1,9 +1,12 @@
-# Enhancement
+# Chaka
+An Android Viewer
+- Based on MuPDF
 - Add support of page flipping in vertical direction.
 - Add support of text direction of right to left. This is for the convenience of old chinese books.
 - Add support of single column mode. It will split a double-page spread image from a scanned pdf book into two seperated pages. In the implemention, the first and last page will not be splitted.
+- Improve navigation and visual experience.
 
-Note: the package name "com.artifex" has been changed to "net.timelegend".
+Note: the package name "com.artifex.mupdf" has been changed to "net.timelegend.chaka".
 
 # MuPDF Android Viewer
 
@@ -18,22 +21,6 @@ The application is a simple file chooser that shows a list of documents on the
 external storage on your device, and hands off the selected file to the viewer
 library.
 
-## License
-
-MuPDF is Copyright (c) 2006-2017 Artifex Software, Inc.
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU Affero General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along
-with this program. If not, see <http://www.gnu.org/licenses/>.
-
 ## Prerequisites
 
 You need a working Android development environment, consisting of the Android
@@ -44,7 +31,7 @@ and install the SDK and NDK.
 
 Download the project using Git:
 
-	$ git clone git://git.ghostscript.com/mupdf-android-viewer.git
+	$ git clone git@github.com:elementdavv/chaka.git
 
 Edit the local.properties file to point to your Android SDK directory:
 
@@ -82,7 +69,7 @@ Then install the app on the device:
 
 To start the installed app on the device:
 
-	$ adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
+	$ adb shell am start -n com.artifex.chaka.viewer.app/.LibraryActivity
 
 To see the error and debugging message log:
 
@@ -102,15 +89,15 @@ environment with a C compiler and GNU Make.
 Either clone the original project with the --recursive flag, or initialize all
 the submodules recursively by hand:
 
-	mupdf-mini $ git submodule update --init
-	mupdf-mini $ cd jni
-	mupdf-mini/jni $ git submodule update --init
-	mupdf-mini/jni $ cd libmupdf
-	mupdf-mini/jni/libmupdf $ git submodule update --init
+	chaka $ git submodule update --init
+	chaka $ cd jni
+	chaka/jni $ git submodule update --init
+	chaka/jni $ cd libmupdf
+	chaka/jni/libmupdf $ git submodule update --init
 
 Then you need to run the 'make generate' step in the libmupdf directory:
 
-	mupdf-mini/jni/libmupdf $ make generate
+	chaka/jni/libmupdf $ make generate
 
 Once this is done, the build system should pick up the local JNI library
 instead of using the Maven artifact.
@@ -119,7 +106,7 @@ instead of using the Maven artifact.
 
 To do a release you MUST first change the package name!
 
-Do NOT use the com.artifex domain for your custom app!
+Do NOT use the net.timelegend domain for your custom app!
 
 In order to sign a release build, you will need to create a key and a key
 store.
