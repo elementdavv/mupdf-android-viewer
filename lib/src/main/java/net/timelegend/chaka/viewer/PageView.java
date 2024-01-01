@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
@@ -55,7 +55,7 @@ class OpaqueImageView extends ImageView {
 }
 
 public class PageView extends ViewGroup {
-	private final String APP = "MuPDF";
+	private final String APP = "Chaka";
 	private final MuPDFCore mCore;
 
 	private static final int HIGHLIGHT_COLOR = 0x80cc6600;

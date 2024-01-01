@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-group = 'net.timelegend.mupdf'
+group = 'net.timelegend.chaka'
 version = '1.23.7a.1'
 
 dependencies {
@@ -34,7 +34,7 @@ project.afterEvaluate {
 
 				pom {
 					name = 'viewer'
-					url = 'http://www.mupdf.com'
+					url = 'https://github.com/elementdavv/chaka'
 					licenses {
 						license {
 							name = 'GNU Affero General Public License'

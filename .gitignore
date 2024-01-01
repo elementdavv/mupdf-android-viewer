@@ -10,3 +10,4 @@ tags
 .project
 .settings/
 app/gradle.properties
+.classpath

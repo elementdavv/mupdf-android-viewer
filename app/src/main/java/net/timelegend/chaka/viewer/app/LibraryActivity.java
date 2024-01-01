@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer.app;
+package net.timelegend.chaka.viewer.app;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.artifex.mupdf.fitz.Document; /* for file name recognition */
-import net.timelegend.mupdf.viewer.DocumentActivity;
+import net.timelegend.chaka.viewer.DocumentActivity;
 
 public class LibraryActivity extends Activity
 {

@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import com.artifex.mupdf.fitz.Link;
 
@@ -544,9 +544,14 @@ public class ReaderView
 		}
 		if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
 			mUserInteracting = false;
-            // on vertical flip, stay layout on touch move
-            if (!mHorizontalScrolling)
+            // on vertical flip with text normal, stay layout on touch move
+            if (!mHorizontalScrolling && !mTextLeft) {
                 return true;
+            }
+            // on horizontal flip with text left, stay layout on touch move
+            if (mHorizontalScrolling && mTextLeft) {
+                return true;
+            }
             //
 			View v = mChildViews.get(mCurrent);
 			if (v != null) {
@@ -676,7 +681,7 @@ public class ReaderView
 
 			for (int i = 0; i < numChildren; i++) {
 				int ai = childIndices[i];
-				if (ai < mCurrent - 1 || ai > mCurrent + 1) {
+				if (ai < mCurrent - 2 || ai > mCurrent + 2) {
 					View v = mChildViews.get(ai);
 					onNotInUse(v);
 					mViewCache.add(v);
@@ -726,16 +731,28 @@ public class ReaderView
 
 		if (!mUserInteracting && mScroller.isFinished()) {
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
-            // on vertical flip, stay layout on touch move
-            if (!mHorizontalScrolling && !mResetLayout) {
+            // on vertical flip with text normal, stay layout on touch move
+            if (!mHorizontalScrolling && !mTextLeft && !mResetLayout) {
                 if (mCurrent == 0) {
-                    if ((!mTextLeft && corr.y > 0) || (mTextLeft && corr.y < 0)) corr.y = 0;
+                    if (corr.y > 0) corr.y = 0;
                 }
                 else if (mCurrent == mAdapter.getCount() - 1) {
-                    if ((!mTextLeft && corr.y < 0) || (mTextLeft && corr.y > 0)) corr.y = 0;
+                    if (corr.y < 0) corr.y = 0;
                 }
                 else {
                     corr.y = 0;
+                }
+            }
+            // on horizontal flip with text left, stay layout on touch move
+            if (mHorizontalScrolling && mTextLeft && !mResetLayout) {
+                if (mCurrent == 0) {
+                    if (corr.x < 0)  corr.x = 0;
+                }
+                else if (mCurrent == mAdapter.getCount() - 1) {
+                    if (corr.x > 0)  corr.x = 0;
+                }
+                else {
+                    corr.x = 0;
                 }
             }
             //
@@ -761,85 +778,120 @@ public class ReaderView
 		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
 
 		if (mCurrent > 0) {
+			View lrv = getOrCreateChild(mCurrent - 1);
             if (!mTextLeft) {
-			View lv = getOrCreateChild(mCurrent - 1);
-			Point leftOffset = subScreenSizeOffset(lv);
-			if (mHorizontalScrolling)
-			{
-				int gap = leftOffset.x + GAP + cvOffset.x;
-				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
-						(cvBottom + cvTop - lv.getMeasuredHeight())/2,
-						cvLeft - gap,
-						(cvBottom + cvTop + lv.getMeasuredHeight())/2);
-			} else {
-				int gap = leftOffset.y + GAP + cvOffset.y;
-				lv.layout((cvLeft + cvRight - lv.getMeasuredWidth())/2,
-						cvTop - lv.getMeasuredHeight() - gap,
-						(cvLeft + cvRight + lv.getMeasuredWidth())/2,
-						cvTop - gap);
-			}
+                leftExtraView(lrv, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
             }
             else {
-			View rv = getOrCreateChild(mCurrent - 1);
-			Point rightOffset = subScreenSizeOffset(rv);
-			if (mHorizontalScrolling)
-			{
-				int gap = cvOffset.x + GAP + rightOffset.x;
-				rv.layout(cvRight + gap,
-						(cvBottom + cvTop - rv.getMeasuredHeight())/2,
-						cvRight + rv.getMeasuredWidth() + gap,
-						(cvBottom + cvTop + rv.getMeasuredHeight())/2);
-			} else {
-				int gap = cvOffset.y + GAP + rightOffset.y;
-				rv.layout((cvLeft + cvRight - rv.getMeasuredWidth())/2,
-						cvBottom + gap,
-						(cvLeft + cvRight + rv.getMeasuredWidth())/2,
-						cvBottom + gap + rv.getMeasuredHeight());
-			}
+                rightExtraView(lrv, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
             }
+		    if (mCurrent > 1) {
+			    View lrv2 = getOrCreateChild(mCurrent - 2);
+                if (!mTextLeft) {
+                    left2ExtraView(lrv, lrv2, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
+                }
+                else {
+                    right2ExtraView(lrv, lrv2, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
+                }
+		    }
 		}
 
 		if (mCurrent + 1 < mAdapter.getCount()) {
+			View lrv = getOrCreateChild(mCurrent + 1);
             if (!mTextLeft) {
-			View rv = getOrCreateChild(mCurrent + 1);
-			Point rightOffset = subScreenSizeOffset(rv);
-			if (mHorizontalScrolling)
-			{
-				int gap = cvOffset.x + GAP + rightOffset.x;
-				rv.layout(cvRight + gap,
-						(cvBottom + cvTop - rv.getMeasuredHeight())/2,
-						cvRight + rv.getMeasuredWidth() + gap,
-						(cvBottom + cvTop + rv.getMeasuredHeight())/2);
-			} else {
-				int gap = cvOffset.y + GAP + rightOffset.y;
-				rv.layout((cvLeft + cvRight - rv.getMeasuredWidth())/2,
-						cvBottom + gap,
-						(cvLeft + cvRight + rv.getMeasuredWidth())/2,
-						cvBottom + gap + rv.getMeasuredHeight());
-			}
+                rightExtraView(lrv, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
             }
             else {
-			View lv = getOrCreateChild(mCurrent + 1);
-			Point leftOffset = subScreenSizeOffset(lv);
-			if (mHorizontalScrolling)
-			{
-				int gap = leftOffset.x + GAP + cvOffset.x;
-				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
-						(cvBottom + cvTop - lv.getMeasuredHeight())/2,
-						cvLeft - gap,
-						(cvBottom + cvTop + lv.getMeasuredHeight())/2);
-			} else {
-				int gap = leftOffset.y + GAP + cvOffset.y;
-				lv.layout((cvLeft + cvRight - lv.getMeasuredWidth())/2,
-						cvTop - lv.getMeasuredHeight() - gap,
-						(cvLeft + cvRight + lv.getMeasuredWidth())/2,
-						cvTop - gap);
-			}
+                leftExtraView(lrv, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
+            }
+		    if (mCurrent + 2 < mAdapter.getCount()) {
+			    View lrv2 = getOrCreateChild(mCurrent + 2);
+                if (!mTextLeft) {
+                    right2ExtraView(lrv, lrv2, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
+                }
+                else {
+                    left2ExtraView(lrv, lrv2, cvOffset, cvLeft, cvTop, cvRight, cvBottom);
+                }
             }
 		}
 
 		invalidate();
 	}
+
+    private void leftExtraView(View lv, Point cvOffset, int cvLeft, int cvTop, int cvRight, int cvBottom) {
+		Point leftOffset = subScreenSizeOffset(lv);
+		if (mHorizontalScrolling) {
+			int gap = leftOffset.x + GAP + cvOffset.x;
+			lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
+					(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+					cvLeft - gap,
+					(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+		} else {
+			int gap = leftOffset.y + GAP + cvOffset.y;
+			lv.layout((cvLeft + cvRight - lv.getMeasuredWidth())/2,
+					cvTop - lv.getMeasuredHeight() - gap,
+					(cvLeft + cvRight + lv.getMeasuredWidth())/2,
+					cvTop - gap);
+		}
+    }
+
+    private void left2ExtraView(View lv, View lv2, Point cvOffset, int cvLeft, int cvTop, int cvRight, int cvBottom) {
+		Point leftOffset = subScreenSizeOffset(lv);
+		Point left2Offset = subScreenSizeOffset(lv2);
+		if (mHorizontalScrolling) {
+			int gap = leftOffset.x + GAP + cvOffset.x;
+			int gap2 = left2Offset.x + GAP + leftOffset.x;
+			lv2.layout(cvLeft - lv.getMeasuredWidth() - gap - lv2.getMeasuredWidth() - gap2,
+					(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+					cvLeft - gap - lv.getMeasuredWidth() - gap2,
+					(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+		} else {
+			int gap = leftOffset.y + GAP + cvOffset.y;
+            int gap2 = left2Offset.y + GAP + leftOffset.y;
+			lv2.layout((cvLeft + cvRight - lv.getMeasuredWidth())/2,
+					cvTop - lv.getMeasuredHeight() - gap - lv2.getMeasuredHeight() - gap2,
+					(cvLeft + cvRight + lv.getMeasuredWidth())/2,
+					cvTop - gap - lv.getMeasuredHeight() - gap2);
+		}
+    }
+
+    private void rightExtraView(View rv, Point cvOffset, int cvLeft, int cvTop, int cvRight, int cvBottom) {
+		Point rightOffset = subScreenSizeOffset(rv);
+		if (mHorizontalScrolling) {
+			int gap = cvOffset.x + GAP + rightOffset.x;
+			rv.layout(cvRight + gap,
+					(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+					cvRight + rv.getMeasuredWidth() + gap,
+					(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+		} else {
+			int gap = cvOffset.y + GAP + rightOffset.y;
+			rv.layout((cvLeft + cvRight - rv.getMeasuredWidth())/2,
+					cvBottom + gap,
+					(cvLeft + cvRight + rv.getMeasuredWidth())/2,
+					cvBottom + gap + rv.getMeasuredHeight());
+		}
+
+    }
+
+    private void right2ExtraView(View rv, View rv2, Point cvOffset, int cvLeft, int cvTop, int cvRight, int cvBottom) {
+		Point rightOffset = subScreenSizeOffset(rv);
+		Point right2Offset = subScreenSizeOffset(rv2);
+		if (mHorizontalScrolling) {
+			int gap = cvOffset.x + GAP + rightOffset.x;
+			int gap2 = rightOffset.x + GAP + right2Offset.x;
+			rv2.layout(cvRight + gap + rv.getMeasuredWidth() + gap2,
+					(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+					cvRight + rv.getMeasuredWidth() + gap + rv2.getMeasuredWidth() + gap2,
+					(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+		} else {
+			int gap = cvOffset.y + GAP + rightOffset.y;
+			int gap2 = rightOffset.y + GAP + right2Offset.y;
+			rv2.layout((cvLeft + cvRight - rv.getMeasuredWidth())/2,
+					cvBottom + gap + rv.getMeasuredHeight() + gap2,
+					(cvLeft + cvRight + rv.getMeasuredWidth())/2,
+					cvBottom + gap + rv.getMeasuredHeight() + gap2 + rv2.getMeasuredHeight());
+		}
+    }
 
 	@Override
 	public Adapter getAdapter() {

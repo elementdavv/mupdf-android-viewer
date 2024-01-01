@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
