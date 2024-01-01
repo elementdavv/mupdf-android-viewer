@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="net.timelegend.mupdf.viewer.app"
+	package="net.timelegend.chaka.viewer.app"
 	android:installLocation="auto"
 	>
 	<application
-		android:label="MuPDF viewer Ext"
-		android:icon="@drawable/ic_mupdf"
+		android:label="Chaka"
+		android:icon="@drawable/ic_chaka"
 		>
 		<activity
 			android:name=".LibraryActivity"

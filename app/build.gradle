@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
-group = 'net.timelegend.mupdf'
+group = 'net.timelegend.chaka'
 version = '1.24.4a.1'
 
 dependencies {
 	if (file('../lib/build.gradle').isFile())
 		api project(':lib')
 	else
-		api 'net.timelegend.mupdf:viewer:1.24.4a.1'
+		api 'net.timelegend.chaka:viewer:1.24.4a.1'
 }
 
 android {

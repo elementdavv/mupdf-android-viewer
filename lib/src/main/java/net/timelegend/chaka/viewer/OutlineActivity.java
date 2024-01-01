@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import android.app.ListActivity;
 import android.os.Bundle;

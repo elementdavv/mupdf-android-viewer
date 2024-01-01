@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
@@ -58,7 +58,7 @@ import java.util.Locale;
 
 public class DocumentActivity extends Activity
 {
-	private final String APP = "MuPDF";
+	private final String APP = "Chaka";
 
 	/* The core rendering instance */
 	enum TopBarMode {Main, Search, More};
@@ -688,7 +688,7 @@ public class DocumentActivity extends Activity
     private void toggleSingleColumnHighlight() {
         int index;
         if (!mSingleColumnHighlight) {
-            // if (!mDocView.isWide()) return;
+            if (!mDocView.isWide()) return;
 		    index = mDocView.getDisplayedViewIndex();
             if (index == 0 || index == (core.countPages() - 1)) return;
         }

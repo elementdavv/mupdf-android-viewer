@@ -1,4 +1,4 @@
-package net.timelegend.mupdf.viewer;
+package net.timelegend.chaka.viewer;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class ContentInputStream implements SeekableInputStream {
-	private final String APP = "MuPDF";
+	private final String APP = "Chaka";
 
 	protected ContentResolver cr;
 	protected Uri uri;
