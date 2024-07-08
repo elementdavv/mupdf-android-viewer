@@ -28,7 +28,7 @@ run-release: install-release
 
 tarball: release
 	cp app/build/outputs/apk/release/app-universal-release.apk \
-		chaka-$(shell git describe --tags)-android-viewer-ext.apk
+		chaka-$(shell git describe --tags)-android-viewer.apk
 
 clean:
 	rm -rf .gradle build

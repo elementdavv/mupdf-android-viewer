@@ -1,6 +1,6 @@
 # Chaka
 An Android Viewer
-- Based on MuPDF
+- Based on MuPDF Android Viewer
 - Add support of page flipping in vertical direction.
 - Add support of text direction of right to left. This is for the convenience of old chinese books.
 - Add support of single column mode. It will split a double-page spread image from a scanned pdf book into two seperated pages. In the implemention, the first and last page will not be splitted.
