@@ -15,7 +15,7 @@ android {
 	defaultConfig {
 		minSdkVersion 21
 		targetSdkVersion 33
-		versionName '1.24.4a.1'
+		versionName '1.24.4a.2'
 		versionCode 151
 	}
 

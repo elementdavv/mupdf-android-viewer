@@ -3,16 +3,18 @@
 default: debug
 
 debug:
-	./gradlew --warning-mode=all assembleDebug bundleDebug
+	./gradlew --warning-mode=all assembleDebug
 release:
-	./gradlew --warning-mode=all assembleRelease bundleRelease
+	./gradlew --warning-mode=all assembleRelease
+bundle:
+	./gradlew --warning-mode=all bundle
 install:
 	./gradlew --warning-mode=all installDebug
-install-release:
+installRelease:
 	./gradlew --warning-mode=all installRelease
 uninstall:
 	./gradlew --warning-mode=all uninstallDebug
-uninstall-release:
+uninstallRelease:
 	./gradlew --warning-mode=all uninstallRelease
 lint:
 	./gradlew --warning-mode=all lint
