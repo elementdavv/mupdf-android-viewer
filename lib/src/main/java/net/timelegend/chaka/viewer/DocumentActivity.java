@@ -569,6 +569,15 @@ public class DocumentActivity extends Activity
 			});
 			mLayoutButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
+                    Menu menu = mLayoutPopupMenu.getMenu();
+                    for (int mi = 0; mi < menu.size(); mi++) {
+                        MenuItem item = menu.getItem(mi);
+                        item.setCheckable(false);
+                        String title = item.getTitle().toString();
+                        if (title.equals(String.valueOf(mLayoutEM) + "pt")) {
+                            item.setCheckable(true).setChecked(true);
+                        }
+                    }
 					mLayoutPopupMenu.show();
 				}
 			});

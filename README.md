@@ -2,8 +2,10 @@
 An Android Viewer
 - Based on MuPDF Android Viewer
 - Add support of page flipping in vertical direction.
-- Add support of text direction of right to left. This is for the convenience of old chinese books.
+- Add support of text direction of right to left. This is for the convenience of chinese ancient books.
 - Add support of single column mode. It will split a double-page spread image from a scanned pdf book into two seperated pages. In the implemention, the first and last page will not be splitted.
+- Add current fontsize indication in format UI.
+- Rewrite Toc function, now support collapsing and expanding of headings.
 - Improve navigation and visual experience.
 
 Note: the package name "com.artifex.mupdf" has been changed to "net.timelegend.chaka".
