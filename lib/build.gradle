@@ -15,10 +15,11 @@ dependencies {
 }
 
 android {
-	compileSdkVersion 33
+	compileSdkVersion 34
 	defaultConfig {
+        namespace 'net.timelegend.chaka.viewer'
 		minSdkVersion 21
-		targetSdkVersion 33
+		targetSdkVersion 34
 	}
 	publishing {
 		singleVariant("release") {
