@@ -307,7 +307,10 @@ public class ReaderView
 						xOffset += screenWidth;
 				}
 				xOffset -= prevLeft;
-				yOffset -= prevTop-prevDocHeight+screenHeight;
+                // cause page align to bottom
+                // when moving back in vertical flip mode with page height smaller than screenHeight
+				// yOffset -= prevTop-prevDocHeight+screenHeight;
+				yOffset -= prevTop;
 			} else {
 				// Move to bottom of previous column
 				xOffset = -screenWidth;

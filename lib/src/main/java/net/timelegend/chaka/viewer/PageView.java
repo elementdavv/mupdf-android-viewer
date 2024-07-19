@@ -158,14 +158,19 @@ public class PageView extends ViewGroup {
 		clearRenderError();
 	}
 
-	public void releaseBitmaps() {
+	public synchronized void releaseBitmaps() {
 		reinit();
 
 		// recycle bitmaps before releasing them.
 
-		if (mEntireBm!=null)
-			mEntireBm.recycle();
-		mEntireBm = null;
+        /*
+         * cause error on app exit occasionally:
+         * Called getWidth() on a recycle()'d bitmap! This is undefined behavior!
+         * adding synchronized do not work either
+         */
+		// if (mEntireBm!=null)
+		// 	mEntireBm.recycle();
+		// mEntireBm = null;
 
 		if (mPatchBm!=null)
 			mPatchBm.recycle();

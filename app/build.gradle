@@ -13,6 +13,7 @@ dependencies {
 android {
 	compileSdkVersion 34
 	defaultConfig {
+        applicationId 'net.timelegend.chaka.viewer.app'
         namespace 'net.timelegend.chaka.viewer.app'
 		minSdkVersion 21
 		targetSdkVersion 34
