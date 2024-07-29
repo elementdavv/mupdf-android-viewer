@@ -12,6 +12,10 @@ install:
 	./gradlew --warning-mode=all installDebug
 installRelease:
 	./gradlew --warning-mode=all installRelease
+run: install
+	adb shell am start -n net.timelegend.chaka.viewer.app/.LibraryActivity
+runRelease: installRelease
+	adb shell am start -n net.timelegend.chaka.viewer.app/.LibraryActivity
 uninstall:
 	./gradlew --warning-mode=all uninstallDebug
 uninstallRelease:
@@ -22,18 +26,10 @@ archive:
 	./gradlew --warning-mode=all publishReleasePublicationToLocalRepository
 sync: archive
 	rsync -av --chmod=g+w --chown=:gs-priv $(HOME)/MAVEN/com/ ghostscript.com:/var/www/maven.ghostscript.com/com/
-
-run: install
-	adb shell am start -n net.timelegend.chaka.viewer.app/.LibraryActivity
-run-release: install-release
-	adb shell am start -n net.timelegend.chaka.viewer.app/.LibraryActivity
-
 tarball: release
 	cp app/build/outputs/apk/release/app-universal-release.apk \
-		chaka-$(shell git describe --tags)-android-viewer.apk
-
+		chaka-$(shell git describe --tags).apk
+tasks:
+	./gradlew tasks
 clean:
-	rm -rf .gradle build
-	rm -rf jni/.cxx jni/.externalNativeBuild jni/.gradle jni/build
-	rm -rf lib/.gradle lib/build
-	rm -rf app/.gradle app/build
+	./gradlew clean

@@ -1109,6 +1109,66 @@ public class ReaderView
 		requestLayout();
     }
 
+    float scaleTo, scaleStep;
+    int xScrollStep, yScrollStep, step;
+    Stepper pinStepper;
+
+    public void togglePin(boolean pin) {
+        PageView pv = (PageView) getDisplayedView();
+        float pvwidth = (float)pv.getWidth();
+        float pvheight = (float)pv.getHeight();
+        float rx = getWidth() / pvwidth;
+        float ry = getHeight() / pvheight;
+        int xScrollTo, yScrollTo;
+        if (pin) {
+            if (ry > rx) {
+                scaleTo = ry / rx;
+                xScrollTo = Math.round((getWidth() - ry * pvwidth) / 2);
+                yScrollTo = 0;
+            }
+            else {
+                scaleTo = rx / ry;
+                xScrollTo = 0;
+                yScrollTo = Math.round((getHeight() - rx * pvheight) / 2);
+            }
+        }
+        else {
+            scaleTo = 1.0f;
+            if (ry > rx) {
+                xScrollTo = 0;
+                yScrollTo = Math.round((getHeight() - rx * pvheight) / 2);
+            }
+            else {
+                yScrollTo = 0;
+                xScrollTo = Math.round((getWidth() - ry * pvwidth) / 2);
+            }
+        }
+        /*
+         * scroll:value > 0 when page move toward left of screen
+         */
+        step = 10;
+        scaleStep = (scaleTo - mScale) / step;
+        xScrollStep = (xScrollTo - pv.getLeft()) / step;
+        yScrollStep = (yScrollTo - pv.getTop()) / step;
+        pinStepper = new Stepper(this, new Runnable() {
+            @Override
+            public void run() {
+                mScale += scaleStep;
+                mXScroll = xScrollStep;
+                mYScroll = yScrollStep;
+                if (--step > 0) {
+		            requestLayout();
+                    pinStepper.prod();
+                }
+                else {
+                    mScale = scaleTo;
+                    requestLayout();
+                }
+            }
+        });
+        pinStepper.prod();
+    }
+
 	protected void onChildSetup(int i, View v) {
 		if (SearchTaskResult.get() != null
 				&& SearchTaskResult.get().pageNumber == i)

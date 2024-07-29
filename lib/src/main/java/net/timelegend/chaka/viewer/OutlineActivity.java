@@ -93,7 +93,6 @@ public class OutlineActivity extends Activity
 
                 if (position != RecyclerView.NO_POSITION) {
                     Item item = outline2.get(position);
-                    changeOutline(item, position, outline2, null);
 		            setResult(RESULT_FIRST_USER + item.page);
 		            finish();
                 }
@@ -190,7 +189,8 @@ public class OutlineActivity extends Activity
 			for (int i = 0; i < outline.size(); ++i) {
 				Item item = outline.get(i);
 
-                if (item.level == 0 || opens-- > 0) {
+                if (item.level == 0 || opens > 0) {
+                    if (opens > 0) opens--;
                     result.add(item);
                     j++;
 
@@ -201,11 +201,11 @@ public class OutlineActivity extends Activity
                         opens += item.count;
                     }
                     else {
-                        i += item.count;
+                        i = countClose(item, i);
                     }
                 }
                 else {
-                    i += item.count;
+                    i = countClose(item, i);
                 }
 			}
 
@@ -214,6 +214,17 @@ public class OutlineActivity extends Activity
 
         return result;
 	}
+
+    private int countClose(Item item, int i) {
+        int kc = item.count;
+        while (kc > 0) {
+            kc--;
+            i++;
+            Item item2 = outline.get(i);
+            kc += item2.count;
+        }
+        return i;
+    }
 
     protected void changeOutline(Item item, int position, ArrayList<Item> outline2, OutlineAdapter adapter) {
         for (int i = 0; i < outline.size(); ++i) {
@@ -224,29 +235,25 @@ public class OutlineActivity extends Activity
                 item.open = !item.open;
 
                 while (count-- > 0) {
-                    if (adapter != null)
-                        adapter.notifyItemChanged(position);
+                    adapter.notifyItemChanged(position);
 
                     if (item.open) {
                         Item i3 = outline.get(++i);
                         outline2.add(++position, i3);
-
-                        if (adapter != null)
-                            adapter.notifyItemInserted(position);
+                        adapter.notifyItemInserted(position);
 
                         if (i3.open) {
                             count += i3.count;
                         }
                         else {
-                            i += i3.count;
+                            i = countClose(i3, i);
                         }
                     }
                     else {
                         Item i3 = outline2.get(position + 1);
                         outline2.remove(position + 1);
+                        adapter.notifyItemRemoved(position + 1);
 
-                        if (adapter != null)
-                            adapter.notifyItemRemoved(position + 1);
                         if (i3.open) {
                             count += i3.count;
                         }
