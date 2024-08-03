@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 group = 'net.timelegend.chaka'
-version = '1.24.8a.3'
+version = '1.24.8a.4'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.3.+'

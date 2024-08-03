@@ -68,6 +68,9 @@ public class ReaderView
 	private float		  mLastScaleFocusY;
     private boolean       mTextLeft = false;
     private boolean       mHorizontalScrolling = true;
+    private boolean       mFocus = false;
+    private int           mPrevLeft;
+    private int           mPrevTop;
 
 	protected Stack<Integer> mHistory;
 
@@ -133,6 +136,9 @@ public class ReaderView
 
 	public void setDisplayedViewIndex(int i) {
 		if (0 <= i && i < mAdapter.getCount()) {
+            if (mFocus) {
+                savePosition(getDisplayedView());
+            }
 			onMoveOffChild(mCurrent);
 			mCurrent = i;
 			onMoveToChild(i);
@@ -182,6 +188,11 @@ public class ReaderView
 		View v = mChildViews.get(mCurrent);
 		if (v == null)
 			return;
+
+        if (mFocus) {
+            scrollOne(1);
+            return;
+        }
 
 		// The following code works in terms of where the screen is on the views;
 		// so for example, if the currentView is at (-100,-100), the visible
@@ -255,6 +266,11 @@ public class ReaderView
 		View v = mChildViews.get(mCurrent);
 		if (v == null)
 			return;
+
+        if (mFocus) {
+            scrollOne(-1);
+            return;
+        }
 
 		// The following code works in terms of where the screen is on the views;
 		// so for example, if the currentView is at (-100,-100), the visible
@@ -339,6 +355,7 @@ public class ReaderView
 	public void refresh() {
 		mResetLayout = true;
 
+        savePosition(null);
 		mScale = 1.0f;
 		mXScroll = mYScroll = 0;
 
@@ -397,52 +414,46 @@ public class ReaderView
 		if (mScaling)
 			return true;
 
+        float xOffset = e1.getX() - e2.getX();
+        float yOffset = e1.getY() - e2.getY();
 		View v = mChildViews.get(mCurrent);
 		if (v != null) {
 			Rect bounds = getScrollBounds(v);
 			switch(directionOfTravel(velocityX, velocityY)) {
 			case MOVING_LEFT:
-				if (mHorizontalScrolling && bounds.left >= 0) {
+				if (mHorizontalScrolling && (bounds.left >= 0 || mFocus)) {
 					// Fling off to the left bring next view onto screen
-					View vl = mChildViews.get(mTextLeft ? mCurrent-1 : mCurrent+1);
-
-					if (vl != null) {
-						slideViewOntoScreen(vl);
-						return true;
-					}
+                    int one = mTextLeft ? -1 : 1;
+                    if (scrollOne(one, xOffset, yOffset)) {
+                        return true;
+                    }
 				}
 				break;
 			case MOVING_UP:
-				if (!mHorizontalScrolling && bounds.top >= 0) {
+				if (!mHorizontalScrolling && (bounds.top >= 0 || mFocus)) {
 					// Fling off to the top bring next view onto screen
-					View vl = mChildViews.get(mTextLeft ? mCurrent-1 : mCurrent+1);
-
-					if (vl != null) {
-						slideViewOntoScreen(vl);
-						return true;
-					}
+                    int one = mTextLeft ? -1 : 1;
+                    if (scrollOne(one, xOffset, yOffset)) {
+                        return true;
+                    }
 				}
 				break;
 			case MOVING_RIGHT:
-				if (mHorizontalScrolling && bounds.right <= 0) {
+				if (mHorizontalScrolling && (bounds.right <= 0 || mFocus)) {
 					// Fling off to the right bring previous view onto screen
-					View vr = mChildViews.get(mTextLeft ? mCurrent+1 : mCurrent-1);
-
-					if (vr != null) {
-						slideViewOntoScreen(vr);
-						return true;
-					}
+                    int one = mTextLeft ? 1 : -1;
+                    if (scrollOne(one, xOffset, yOffset)) {
+                        return true;
+                    }
 				}
 				break;
 			case MOVING_DOWN:
-				if (!mHorizontalScrolling && bounds.bottom <= 0) {
+				if (!mHorizontalScrolling && (bounds.bottom <= 0 || mFocus)) {
 					// Fling off to the bottom bring previous view onto screen
-					View vr = mChildViews.get(mTextLeft ? mCurrent+1 : mCurrent-1);
-
-					if (vr != null) {
-						slideViewOntoScreen(vr);
-						return true;
-					}
+                    int one = mTextLeft ? 1 : -1;
+                    if (scrollOne(one, xOffset, yOffset)) {
+                        return true;
+                    }
 				}
 				break;
 			}
@@ -722,6 +733,10 @@ public class ReaderView
 			// Main item not already present. Just place it top left
 			cvLeft = cvOffset.x;
 			cvTop = cvOffset.y;
+            if (mFocus) {
+                cvLeft += mPrevLeft;
+                cvTop += mPrevTop;
+            }
 		} else {
 			// Main item already present. Adjust by scroll offsets
 			cvLeft = cv.getLeft() + mXScroll;
@@ -1088,6 +1103,51 @@ public class ReaderView
         return v.getMeasuredWidth() > v.getMeasuredHeight();
     }
 
+    public void savePosition(View cv) {
+        mPrevLeft = cv == null ? 0 : cv.getLeft();
+        mPrevTop = cv == null ? 0 : cv.getTop();
+    }
+
+    /*
+     * scroll to prev or next page
+     * dir: -1/+1
+     */
+    private boolean scrollOne(int dir) {
+        return scrollOne(dir, 0, 0);
+    }
+
+    private boolean scrollOne(int dir, float xOffset, float yOffset) {
+        return scrollOne(dir, Math.round(xOffset), Math.round(yOffset));
+    }
+
+    private boolean scrollOne(int dir, int xOffset, int yOffset) {
+        if (!(dir == 1 || dir == -1)) return false;
+
+        View v = mChildViews.get(mCurrent);
+        if (v == null)
+            return false;
+
+        View nv = mChildViews.get(mCurrent + dir);
+        if (nv == null)
+            return false;
+
+		mScrollerLastX = mScrollerLastY = 0;
+        if (mHorizontalScrolling) {
+            if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
+		        mScroller.startScroll(0, 0, nv.getWidth() + xOffset, yOffset, 400);
+            else
+		        mScroller.startScroll(0, 0, -v.getWidth() + xOffset, yOffset, 400);
+        }
+        else {
+            if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
+		        mScroller.startScroll(0, 0, xOffset, nv.getHeight() + yOffset, 400);
+            else
+		        mScroller.startScroll(0, 0, xOffset, -v.getHeight() + yOffset, 400);
+        }
+		mStepper.prod();
+        return true;
+    }
+
     public void toggleSingleColumn(boolean sc) {
         if (sc) {
             mCurrent = (mCurrent * 2) - 1;
@@ -1111,16 +1171,17 @@ public class ReaderView
 
     float scaleTo, scaleStep;
     int xScrollStep, yScrollStep, step;
-    Stepper pinStepper;
+    Stepper focusStepper;
 
-    public void togglePin(boolean pin) {
+    public void toggleFocus() {
+        mFocus = !mFocus;
         PageView pv = (PageView) getDisplayedView();
         float pvwidth = (float)pv.getWidth();
         float pvheight = (float)pv.getHeight();
         float rx = getWidth() / pvwidth;
         float ry = getHeight() / pvheight;
         int xScrollTo, yScrollTo;
-        if (pin) {
+        if (mFocus) {
             if (ry > rx) {
                 scaleTo = ry / rx;
                 xScrollTo = Math.round((getWidth() - ry * pvwidth) / 2);
@@ -1150,7 +1211,7 @@ public class ReaderView
         scaleStep = (scaleTo - mScale) / step;
         xScrollStep = (xScrollTo - pv.getLeft()) / step;
         yScrollStep = (yScrollTo - pv.getTop()) / step;
-        pinStepper = new Stepper(this, new Runnable() {
+        focusStepper = new Stepper(this, new Runnable() {
             @Override
             public void run() {
                 mScale += scaleStep;
@@ -1158,7 +1219,7 @@ public class ReaderView
                 mYScroll = yScrollStep;
                 if (--step > 0) {
 		            requestLayout();
-                    pinStepper.prod();
+                    focusStepper.prod();
                 }
                 else {
                     mScale = scaleTo;
@@ -1166,7 +1227,7 @@ public class ReaderView
                 }
             }
         });
-        pinStepper.prod();
+        focusStepper.prod();
     }
 
 	protected void onChildSetup(int i, View v) {

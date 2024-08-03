@@ -32,6 +32,7 @@ public class MuPDFCore
 	private float pageHeight;
 	private DisplayList displayList;
     private boolean singleColumnMode = false;
+    private boolean textLeftMode = false;
 
 	/* Default to "A Format" pocket book size. */
 	private int layoutW = 312;
@@ -185,9 +186,13 @@ public class MuPDFCore
 		drawPage(bm, pageNum, pageW, pageH, patchX, patchY, patchW, patchH, cookie);
 	}
 
-    public void toggleSingleColumn(boolean sc) {
-        singleColumnMode = sc;
+    public void toggleSingleColumn() {
+        singleColumnMode = !singleColumnMode;
         correctPageCount();
+    }
+
+    public void toggleTextLeft() {
+        textLeftMode = !textLeftMode;
     }
 
 	public synchronized Link[] getPageLinks(int pageNum) {
@@ -238,6 +243,10 @@ public class MuPDFCore
 
     public boolean isSplitPage(int page) {
         return singleColumnMode && page > 0 && page < (pageCount - 1);
+    }
+
+    public boolean isTextLeft() {
+        return textLeftMode;
     }
 
     private void correctPageCount() {

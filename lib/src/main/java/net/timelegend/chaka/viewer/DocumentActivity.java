@@ -78,7 +78,7 @@ public class DocumentActivity extends Activity
     private ImageButton  mSingleColumnButton;
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
-	private ImageButton  mPinButton;
+	private ImageButton  mFocusButton;
 	private ImageButton  mSearchButton;
 	private ImageButton  mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
@@ -93,7 +93,7 @@ public class DocumentActivity extends Activity
     private boolean    mSingleColumnHighlight = false;
     private boolean    mTextLeftHighlight = false;
     private boolean    mFlipVerticalHighlight = false;
-    private boolean    mPinHighlight = false;
+    private boolean    mFocusHighlight = false;
 	private boolean    mLinkHighlight = false;
 	private final Handler mHandler = new Handler();
 	private boolean mAlertsActive= false;
@@ -473,9 +473,9 @@ public class DocumentActivity extends Activity
             }
         });
 
-        mPinButton.setOnClickListener(new View.OnClickListener() {
+        mFocusButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                togglePin();
+                toggleFocus();
             }
         });
 
@@ -713,7 +713,7 @@ public class DocumentActivity extends Activity
 		// COLOR tint
 		mSingleColumnButton.setColorFilter(mSingleColumnHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
 		// Inform pages of the change.
-        core.toggleSingleColumn(mSingleColumnHighlight);
+        core.toggleSingleColumn();
 		mDocView.toggleSingleColumn(mSingleColumnHighlight);
 		int smax = Math.max(core.countPages()-1,1);
 		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
@@ -728,6 +728,7 @@ public class DocumentActivity extends Activity
 		// COLOR tint
 		mTextLeftButton.setColorFilter(mTextLeftHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
 		// Inform pages of the change.
+		core.toggleTextLeft();
 		mDocView.toggleTextLeft();
 		int index = mDocView.getDisplayedViewIndex();
 		updatePageNumView(index);
@@ -742,12 +743,12 @@ public class DocumentActivity extends Activity
 		mDocView.toggleFlipVertical();
 	}
 
-    private void togglePin() {
-		mPinHighlight = !mPinHighlight;
+    private void toggleFocus() {
+		mFocusHighlight = !mFocusHighlight;
 		// COLOR tint
-		mPinButton.setColorFilter(mPinHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mFocusButton.setColorFilter(mFocusHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
 		// Inform pages of the change.
-		mDocView.togglePin(mPinHighlight );
+		mDocView.toggleFocus();
     }
 
 	private void setLinkHighlight(boolean highlight) {
@@ -875,7 +876,7 @@ public class DocumentActivity extends Activity
         mSingleColumnButton = (ImageButton)mButtonsView.findViewById(R.id.singleColumnButton);
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
-        mPinButton = (ImageButton)mButtonsView.findViewById(R.id.pinButton);
+        mFocusButton = (ImageButton)mButtonsView.findViewById(R.id.focusButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
 		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);

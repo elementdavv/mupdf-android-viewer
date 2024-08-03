@@ -60,11 +60,11 @@
 				/>
 
 			<ImageButton
-				android:id="@+id/pinButton"
+				android:id="@+id/focusButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:background="@drawable/button"
-				android:src="@drawable/ic_pin_white_24dp"
+				android:src="@drawable/ic_focus_white_24dp"
 				/>
 
 			<ImageButton

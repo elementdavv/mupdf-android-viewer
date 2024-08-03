@@ -233,7 +233,7 @@ public class PageView extends ViewGroup {
 		mErrorIndicator.invalidate();
 	}
 
-    // the page is correctPage
+    // the page is correctPage, the size is corrected size
 	public void setPage(int page, PointF size) {
 		// Cancel pending render task
 		if (mDrawEntire != null) {
@@ -317,7 +317,7 @@ public class PageView extends ViewGroup {
 					clearRenderError();
                     if (mCore.isSplitPage(mPageNumber)) {
                         int cx = getColumnX(mSize.x, mEntireBm.getWidth());
-                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mSize.x, mSize.y);
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -352,14 +352,27 @@ public class PageView extends ViewGroup {
                                 float lrx = q.lr_x * scale;
                                 float llx = q.ll_x * scale;
                                 if (mCore.isSplitPage(mPageNumber)) {
-                                    if (mPageNumber % 2 == 0) {
-                                        if (urx < mSize.x) continue;
-                                        urx -= mSize.x;
-                                        ulx -= mSize.x;
-                                        if (ulx < 0) ulx = 0;
-                                        lrx -= mSize.x;
-                                        llx -= mSize.x;
-                                        if (llx < 0) llx = 0;
+                                    if (mCore.isTextLeft()) {
+                                        if (mPageNumber % 2 == 1) {
+                                            if (urx < mSize.x) continue;
+                                            urx -= mSize.x;
+                                            ulx -= mSize.x;
+                                            if (ulx < 0) ulx = 0;
+                                            lrx -= mSize.x;
+                                            llx -= mSize.x;
+                                            if (llx < 0) llx = 0;
+                                        }
+                                    }
+                                    else {
+                                        if (mPageNumber % 2 == 0) {
+                                            if (urx < mSize.x) continue;
+                                            urx -= mSize.x;
+                                            ulx -= mSize.x;
+                                            if (ulx < 0) ulx = 0;
+                                            lrx -= mSize.x;
+                                            llx -= mSize.x;
+                                            if (llx < 0) llx = 0;
+                                        }
                                     }
                                 }
 								path.moveTo(ulx, q.ul_y * scale);
@@ -378,9 +391,17 @@ public class PageView extends ViewGroup {
                             float x0 = link.getBounds().x0*scale;
                             float x1 = link.getBounds().x1*scale;
                             if (mCore.isSplitPage(mPageNumber)) {
-                                if (mPageNumber % 2 == 0) {
-                                    x0 -= mSize.x;
-                                    x1 -= mSize.x;
+                                if (mCore.isTextLeft()) {
+                                    if (mPageNumber % 2 == 1) {
+                                        x0 -= mSize.x;
+                                        x1 -= mSize.x;
+                                    }
+                                }
+                                else {
+                                    if (mPageNumber % 2 == 0) {
+                                        x0 -= mSize.x;
+                                        x1 -= mSize.x;
+                                    }
                                 }
                             }
 							canvas.drawRect(x0, link.getBounds().y0*scale,
@@ -554,7 +575,7 @@ public class PageView extends ViewGroup {
 						clearRenderError();
                         if (mCore.isSplitPage(mPageNumber)) {
                             int cx = getColumnX(patchViewSize.x, mPatchBm.getWidth());
-                            mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, patchViewSize.x, patchViewSize.y);
+                            mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, mPatchBm.getWidth() / 2, mPatchBm.getHeight());
 					        mPatch.setImageBitmap(mColumnBm);
                         }
                         else
@@ -657,9 +678,10 @@ public class PageView extends ViewGroup {
 
 	public int hitLink(float x, float y) {
         if (mCore.isSplitPage(mPageNumber)) {
-            if (mPageNumber % 2 == 0) {
-                x += mSize.x;
-            }
+            if (mCore.isTextLeft())
+                if (mPageNumber % 2 == 1) { x += mSize.x; }
+            else
+                if (mPageNumber % 2 == 0) { x += mSize.x; }
         }
 		// Since link highlighting was implemented, the super class
 		// PageView has had sufficient information to be able to
@@ -731,8 +753,13 @@ public class PageView extends ViewGroup {
 	}
 
     private int getColumnX(int sx, int bmw) {
-        if (mPageNumber % 2 == 1) return 0;
-        if (2 * sx > bmw) return bmw - sx;
-        return sx;
+        int cx;
+        if (mCore.isTextLeft()) {
+            cx = (mPageNumber % 2 == 0) ? 0 : ((2 * sx > bmw) ? bmw - sx : sx);
+        }
+        else {
+            cx = (mPageNumber % 2 == 1) ? 0 : ((2 * sx > bmw) ? bmw - sx : sx);
+        }
+        return cx;
     }
 }
