@@ -114,16 +114,14 @@ public class MuPDFCore
 				page = doc.loadPage(pageNum);
 				Rect b = page.getBounds();
 				pageWidth = b.x1 - b.x0;
-                if (isSplitPage(currentPage)) {
-                    pageWidth = (pageWidth + 1) / 2;
-                }
 				pageHeight = b.y1 - b.y0;
 			}
-
-			// currentPage = pageNum;
 		}
 	}
 
+    /*
+     * page full size
+     */
 	public synchronized PointF getPageSize(int pageNum) {
 		gotoPage(pageNum);
 		return new PointF(pageWidth, pageHeight);
@@ -206,7 +204,26 @@ public class MuPDFCore
 
 	public synchronized Quad[][] searchPage(int pageNum, String text) {
 		gotoPage(pageNum);
-		return page.search(text);
+		Quad[][] ret = page.search(text);
+        if (!isSplitPage(pageNum))
+            return ret;
+
+        ArrayList<Quad[]> reslist = new ArrayList<>();
+        float mid = pageWidth / 2;
+        for (Quad[] r : ret) {
+            for (Quad q : r) {
+                if ( (!isRightPage(pageNum) && q.ul_x < mid) || (isRightPage(pageNum) && q.ur_x > mid) ) {
+                    reslist.add(r);
+                    break;
+                }
+            }
+        }
+        if (reslist.size() > 0) {
+            Quad[][] res = new Quad[reslist.size()][];
+            res = reslist.toArray(res);
+            return res;
+        }
+        return null;
 	}
 
 	public synchronized boolean hasOutline() {
@@ -223,12 +240,12 @@ public class MuPDFCore
 	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent, int level) {
 		for (Outline node : list) {
 			if (node.title != null) {
-				int page = correctPage(doc.pageNumberFromLocation(doc.resolveLink(node)));
+				int pageNum = correctPage(doc.pageNumberFromLocation(doc.resolveLink(node)));
                 int count = 0;
                 if (node.down != null && node.down.length > 0) {
                     count = node.down.length;
                 }
-				result.add(new OutlineActivity.Item(indent + node.title, page, level, count));
+				result.add(new OutlineActivity.Item(indent + node.title, pageNum, level, count));
 			}
 			if (node.down != null)
 				flattenOutlineNodes(result, node.down, indent + "    ", level + 1);
@@ -241,8 +258,19 @@ public class MuPDFCore
 		return result;
 	}
 
-    public boolean isSplitPage(int page) {
-        return singleColumnMode && page > 0 && page < (pageCount - 1);
+    public boolean isSingleColumn() {
+        return singleColumnMode;
+    }
+
+    public boolean isSplitPage(int pageNum) {
+        return singleColumnMode && pageNum > 0 && pageNum < (pageCount - 1);
+    }
+
+    /*
+     * for splitted page
+     */
+    public boolean isRightPage(int pageNum) {
+        return (textLeftMode && pageNum % 2 == 1) || (!textLeftMode && pageNum % 2 == 0);
     }
 
     public boolean isTextLeft() {

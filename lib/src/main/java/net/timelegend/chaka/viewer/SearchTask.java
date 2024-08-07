@@ -73,8 +73,13 @@ public abstract class SearchTask {
 			@Override
 			protected SearchTaskResult doInBackground(Void... params) {
 				int index = startIndex;
+                int step = 0;
+                int cp = mCore.countPages();
+                if (searchPage != -1) cp--;
 
-				while (0 <= index && index < mCore.countPages() && !isCancelled()) {
+				while (step++ < cp && !isCancelled()) {
+                    if (index >= mCore.countPages()) index = 0;
+                    if (index < 0) index = mCore.countPages() - 1;
 					publishProgress(index);
 					Quad searchHits[][] = mCore.searchPage(index, text);
 

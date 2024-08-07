@@ -49,6 +49,14 @@ public class PageAdapter extends BaseAdapter {
 		mPageSizes.clear();
 	}
 
+    /*
+     * cacheable views should have same screen size
+     * in single column mode, only cache splitted pages
+     */
+    public boolean cacheable(int position) {
+        return !mCore.isSingleColumn() || mCore.isSplitPage(position);
+    }
+
     // the position is correctPage
 	public synchronized View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;

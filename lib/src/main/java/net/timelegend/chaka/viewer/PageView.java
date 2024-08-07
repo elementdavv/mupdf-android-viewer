@@ -233,7 +233,7 @@ public class PageView extends ViewGroup {
 		mErrorIndicator.invalidate();
 	}
 
-    // the page is correctPage, the size is corrected size
+    // the page is correctPage, the size is full size
 	public void setPage(int page, PointF size) {
 		// Cancel pending render task
 		if (mDrawEntire != null) {
@@ -258,6 +258,10 @@ public class PageView extends ViewGroup {
 		mSourceScale = Math.min(mParentSize.x/size.x, mParentSize.y/size.y);
 		Point newSize = new Point((int)(size.x*mSourceScale), (int)(size.y*mSourceScale));
 		mSize = newSize;
+
+        if (mCore.isSplitPage(mPageNumber)) {
+            mSize.x = (mSize.x + 1) / 2;
+        }
 
 		if (mErrorIndicator != null)
 			return;
@@ -339,7 +343,8 @@ public class PageView extends ViewGroup {
 					super.onDraw(canvas);
 					// Work out current total scale factor
 					// from source to view
-					final float scale = mSourceScale*(float)getWidth()/(float)mSize.x;
+                    int viewWidth = getWidth();
+					final float scale = mSourceScale*(float)viewWidth/(float)mSize.x;
 					final Paint paint = new Paint();
 
 					if (!mIsBlank && mSearchBoxes != null) {
@@ -352,27 +357,17 @@ public class PageView extends ViewGroup {
                                 float lrx = q.lr_x * scale;
                                 float llx = q.ll_x * scale;
                                 if (mCore.isSplitPage(mPageNumber)) {
-                                    if (mCore.isTextLeft()) {
-                                        if (mPageNumber % 2 == 1) {
-                                            if (urx < mSize.x) continue;
-                                            urx -= mSize.x;
-                                            ulx -= mSize.x;
-                                            if (ulx < 0) ulx = 0;
-                                            lrx -= mSize.x;
-                                            llx -= mSize.x;
-                                            if (llx < 0) llx = 0;
-                                        }
+                                    if (mCore.isRightPage(mPageNumber)) {
+                                        if (urx < viewWidth) continue;
+                                        urx -= viewWidth;
+                                        ulx -= viewWidth;
+                                        if (ulx < 0) ulx = 0;
+                                        lrx -= viewWidth;
+                                        llx -= viewWidth;
+                                        if (llx < 0) llx = 0;
                                     }
                                     else {
-                                        if (mPageNumber % 2 == 0) {
-                                            if (urx < mSize.x) continue;
-                                            urx -= mSize.x;
-                                            ulx -= mSize.x;
-                                            if (ulx < 0) ulx = 0;
-                                            lrx -= mSize.x;
-                                            llx -= mSize.x;
-                                            if (llx < 0) llx = 0;
-                                        }
+                                        if (ulx > viewWidth) continue;
                                     }
                                 }
 								path.moveTo(ulx, q.ul_y * scale);
@@ -391,17 +386,14 @@ public class PageView extends ViewGroup {
                             float x0 = link.getBounds().x0*scale;
                             float x1 = link.getBounds().x1*scale;
                             if (mCore.isSplitPage(mPageNumber)) {
-                                if (mCore.isTextLeft()) {
-                                    if (mPageNumber % 2 == 1) {
-                                        x0 -= mSize.x;
-                                        x1 -= mSize.x;
-                                    }
+                                if (mCore.isRightPage(mPageNumber)) {
+                                    if (x1 < viewWidth) continue;
+                                    x1 -= viewWidth;
+                                    x0 -= viewWidth;
+                                    if (x0 < 0) x0 = 0;
                                 }
                                 else {
-                                    if (mPageNumber % 2 == 0) {
-                                        x0 -= mSize.x;
-                                        x1 -= mSize.x;
-                                    }
+                                    if (x0 > viewWidth) continue;
                                 }
                             }
 							canvas.drawRect(x0, link.getBounds().y0*scale,
@@ -670,18 +662,23 @@ public class PageView extends ViewGroup {
 				Log.e(APP, x.toString());
 				Toast.makeText(getContext(), x.getMessage(), Toast.LENGTH_LONG).show();
 			}
-			return 0;
+			return -1;
 		} else {
 			return mCore.resolveLink(link);
 		}
 	}
 
+    /*
+     * return
+     * > -1: page number in the document
+     * == -1: external link, handled
+     * < -1: hit nothing, not handled
+     */
 	public int hitLink(float x, float y) {
         if (mCore.isSplitPage(mPageNumber)) {
-            if (mCore.isTextLeft())
-                if (mPageNumber % 2 == 1) { x += mSize.x; }
-            else
-                if (mPageNumber % 2 == 0) { x += mSize.x; }
+            if (mCore.isRightPage(mPageNumber)) {
+                x += getWidth();
+            }
         }
 		// Since link highlighting was implemented, the super class
 		// PageView has had sufficient information to be able to
@@ -695,7 +692,7 @@ public class PageView extends ViewGroup {
 			for (Link l: mLinks)
 				if (l.getBounds().contains(docRelX, docRelY))
 					return hitLink(l);
-		return 0;
+		return -2;
 	}
 
 	protected CancellableTaskDefinition<Void, Boolean> getDrawPageTask(final Bitmap bm, final int sizeX, final int sizeY,
@@ -752,14 +749,13 @@ public class PageView extends ViewGroup {
 		}
 	}
 
+    /*
+     * for splitted page
+     */
     private int getColumnX(int sx, int bmw) {
-        int cx;
-        if (mCore.isTextLeft()) {
-            cx = (mPageNumber % 2 == 0) ? 0 : ((2 * sx > bmw) ? bmw - sx : sx);
+        if (!mCore.isRightPage(mPageNumber)) {
+            return 0;
         }
-        else {
-            cx = (mPageNumber % 2 == 1) ? 0 : ((2 * sx > bmw) ? bmw - sx : sx);
-        }
-        return cx;
+        return 2 * sx > bmw ? bmw - sx : sx;
     }
 }

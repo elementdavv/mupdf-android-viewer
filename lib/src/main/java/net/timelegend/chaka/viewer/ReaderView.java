@@ -698,7 +698,8 @@ public class ReaderView
 				if (ai < mCurrent - 2 || ai > mCurrent + 2) {
 					View v = mChildViews.get(ai);
 					onNotInUse(v);
-					mViewCache.add(v);
+                    if (mAdapter.cacheable(ai))
+					    mViewCache.add(v);
 					removeViewInLayout(v);
 					mChildViews.remove(ai);
 				}
@@ -712,7 +713,9 @@ public class ReaderView
 			for (int i = 0; i < numChildren; i++) {
 				View v = mChildViews.valueAt(i);
 				onNotInUse(v);
-				mViewCache.add(v);
+                int ai = mChildViews.keyAt(i);
+                if (mAdapter.cacheable(ai))
+				    mViewCache.add(v);
 				removeViewInLayout(v);
 			}
 			mChildViews.clear();
@@ -1077,13 +1080,17 @@ public class ReaderView
 			PageView pageView = (PageView) getDisplayedView();
 			if (mLinksEnabled && pageView != null) {
 				int page = pageView.hitLink(e.getX(), e.getY());
-				if (page > 0) {
+				if (page > -1) {
 					pushHistory();
 					setDisplayedViewIndex(page);
-				} else {
-					onTapMainDocArea();
+                    return true;
+                // external link, handled
+				} else if (page == -1){
+                    return true;
 				}
-			} else if (e.getX() < tapPageMargin) {
+			}
+            // page < -1, hit nothing, proceed
+            if (e.getX() < tapPageMargin) {
 				if (mTextLeft) smartMoveForwards(); else smartMoveBackwards();
 			} else if (e.getX() > super.getWidth() - tapPageMargin) {
 				if (mTextLeft) smartMoveBackwards(); else smartMoveForwards();
@@ -1131,19 +1138,20 @@ public class ReaderView
         if (nv == null)
             return false;
 
-		mScrollerLastX = mScrollerLastY = 0;
         if (mHorizontalScrolling) {
             if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
-		        mScroller.startScroll(0, 0, nv.getWidth() + xOffset, yOffset, 400);
+                xOffset += nv.getWidth();
             else
-		        mScroller.startScroll(0, 0, -v.getWidth() + xOffset, yOffset, 400);
+                xOffset -= v.getWidth();
         }
         else {
             if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
-		        mScroller.startScroll(0, 0, xOffset, nv.getHeight() + yOffset, 400);
+                yOffset += nv.getHeight();
             else
-		        mScroller.startScroll(0, 0, xOffset, -v.getHeight() + yOffset, 400);
+                yOffset -= v.getHeight();
         }
+		mScrollerLastX = mScrollerLastY = 0;
+		mScroller.startScroll(0, 0, xOffset, yOffset, 400);
 		mStepper.prod();
         return true;
     }
@@ -1205,7 +1213,7 @@ public class ReaderView
             }
         }
         /*
-         * scroll:value > 0 when page move toward left of screen
+         * scroll:value < 0 when page move toward left/top off screen
          */
         step = 10;
         scaleStep = (scaleTo - mScale) / step;
@@ -1254,13 +1262,14 @@ public class ReaderView
 	protected void onSettle(View v) {
 		// When the layout has settled ask the page to render
 		// in HQ
-		((PageView) v).updateHq(false);
+        // i don't see any sense of this method, and it cause splitted page scaled display abnormally, comment out
+		// ((PageView) v).updateHq(false);
 	}
 
 	protected void onUnsettle(View v) {
 		// When something changes making the previous settled view
 		// no longer appropriate, tell the page to remove HQ
-		((PageView) v).removeHq();
+		// ((PageView) v).removeHq();
 	}
 
 	protected void onNotInUse(View v) {

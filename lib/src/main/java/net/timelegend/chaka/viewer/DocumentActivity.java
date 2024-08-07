@@ -38,6 +38,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
@@ -84,6 +85,7 @@ public class DocumentActivity extends Activity
 	private ViewAnimator mTopBarSwitcher;
 	private ImageButton  mLinkButton;
 	private TopBarMode   mTopBarMode = TopBarMode.Main;
+    private ImageButton  mSearchClear;
 	private ImageButton  mSearchBack;
 	private ImageButton  mSearchFwd;
 	private ImageButton  mSearchClose;
@@ -100,6 +102,8 @@ public class DocumentActivity extends Activity
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 	private boolean mReturnToLibraryActivity = false;
+    private boolean mPending = false;
+    private boolean mKeybordOn = false;
 
 	protected int mDisplayDPI;
 	private int mLayoutEM;      // read from prefs
@@ -377,7 +381,7 @@ public class DocumentActivity extends Activity
 				if (!mButtonsVisible) {
 					showButtons();
 				} else {
-					if (mTopBarMode == TopBarMode.Main)
+					// if (mTopBarMode == TopBarMode.Main)
 						hideButtons();
 				}
 			}
@@ -455,6 +459,22 @@ public class DocumentActivity extends Activity
 			}
 		});
 
+        mDocNameView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mPending) return;
+                mPending = !mPending;
+                View innerBar = mButtonsView.findViewById(R.id.innerBar);
+                innerBar.setVisibility(View.GONE);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        innerBar.setVisibility(View.VISIBLE);
+                        mPending = !mPending;
+                    }
+                }, 1000);
+            }
+        });
+
         mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 toggleSingleColumnHighlight();
@@ -499,6 +519,11 @@ public class DocumentActivity extends Activity
 				setButtonEnabled(mSearchBack, haveText);
 				setButtonEnabled(mSearchFwd, haveText);
 
+                if (!haveText && !mKeybordOn) {
+                    mSearchText.requestFocus();
+                    showKeyboard();
+                }
+
 				// Remove any previous search results
 				if (SearchTaskResult.get() != null && !mSearchText.getText().toString().equals(SearchTaskResult.get().txt)) {
 					SearchTaskResult.set(null);
@@ -527,6 +552,29 @@ public class DocumentActivity extends Activity
 				return false;
 			}
 		});
+
+        mSearchText.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent e) {
+                switch (e.getAction()) {
+                case MotionEvent.ACTION_UP:
+                    if (!mKeybordOn) {
+                        mSearchText.requestFocus();
+                        showKeyboard();
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+                }
+                return false;
+            }
+        });
+
+        mSearchClear.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mSearchText.setText("");
+            }
+        });
 
 		// Activate search invoking buttons
 		mSearchBack.setOnClickListener(new View.OnClickListener() {
@@ -769,8 +817,10 @@ public class DocumentActivity extends Activity
 			updatePageNumView(index);
             updatePageSlider(index);
 			if (mTopBarMode == TopBarMode.Search) {
-				mSearchText.requestFocus();
-				showKeyboard();
+                if ("".equals(mSearchText.getText().toString())) {
+				    mSearchText.requestFocus();
+				    showKeyboard();
+                }
 			}
 
 			Animation anim = new TranslateAnimation(0, 0, -mTopBarSwitcher.getHeight(), 0);
@@ -835,7 +885,9 @@ public class DocumentActivity extends Activity
 			mTopBarMode = TopBarMode.Search;
 			//Focus on EditTextWidget
 			mSearchText.requestFocus();
-			showKeyboard();
+            if ("".equals(mSearchText.getText().toString())) {
+			    showKeyboard();
+            }
 			mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
 		}
 	}
@@ -879,6 +931,7 @@ public class DocumentActivity extends Activity
         mFocusButton = (ImageButton)mButtonsView.findViewById(R.id.focusButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
+		mSearchClear = (ImageButton)mButtonsView.findViewById(R.id.searchClear);
 		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);
 		mSearchFwd = (ImageButton)mButtonsView.findViewById(R.id.searchForward);
 		mSearchClose = (ImageButton)mButtonsView.findViewById(R.id.searchClose);
@@ -892,15 +945,21 @@ public class DocumentActivity extends Activity
 	}
 
 	private void showKeyboard() {
+        if (mKeybordOn) return;
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		if (imm != null)
+		if (imm != null) {
 			imm.showSoftInput(mSearchText, 0);
+            mKeybordOn = !mKeybordOn;
+        }
 	}
 
 	private void hideKeyboard() {
+        if (!mKeybordOn) return;
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		if (imm != null)
+		if (imm != null) {
 			imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
+            mKeybordOn = !mKeybordOn;
+        }
 	}
 
 	private void search(int direction) {

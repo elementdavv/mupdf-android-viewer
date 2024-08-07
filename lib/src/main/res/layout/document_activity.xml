@@ -28,8 +28,7 @@
 				android:layout_height="wrap_content"
 				android:layout_weight="1"
 				android:layout_gravity="center"
-				android:paddingLeft="16dp"
-				android:paddingRight="8dp"
+				android:paddingLeft="4dp"
 				android:singleLine="true"
 				android:ellipsize="end"
 				android:textSize="16sp"
@@ -42,6 +41,13 @@
 				android:background="@drawable/button"
 				android:src="@drawable/ic_single_column_white_24dp"
 				/>
+
+		    <LinearLayout
+			    android:id="@+id/innerBar"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:orientation="horizontal"
+			    >
 
 			<ImageButton
 				android:id="@+id/textLeftButton"
@@ -100,6 +106,8 @@
 				android:src="@drawable/ic_toc_white_24dp"
 				/>
 
+		    </LinearLayout>
+
 		</LinearLayout>
 
 		<LinearLayout
@@ -133,6 +141,14 @@
 				android:textColor="@android:color/white"
 				android:textColorHighlight="#a0a0a0"
 				android:textColorHint="#a0a0a0"
+				/>
+
+			<ImageButton
+				android:id="@+id/searchClear"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@drawable/button"
+				android:src="@drawable/ic_clear_white_24dp"
 				/>
 
 			<ImageButton
