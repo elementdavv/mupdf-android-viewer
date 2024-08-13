@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.MyApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- for App Title -->
+        <item name="colorPrimary">@color/toolbar</item>
+        <!-- for menu checkbox -->
+        <item name="colorSecondary">@android:color/white</item>
+        <!-- <item name="colorPrimaryVariant">@color/purple_700</item> -->
+        <!-- <item name="colorOnPrimary">@color/black</item> -->
+        <!-- <item name="colorSecondary">@color/teal_200</item> -->
+        <!-- <item name="colorSecondaryVariant">@color/teal_200</item> -->
+        <!-- <item name="colorOnSecondary">@color/black</item> -->
+
+        <!-- for menu background-->
+        <item name="android:colorBackground">@color/toolbar</item>
+        <!-- <item name="colorOnBackground">@android:color/white</item> -->
+        <!-- <item name="colorSurface">@color/toolbar</item> -->
+        <!-- <item name="colorOnSurface">@color/black</item> -->
+        <!-- <item name="colorError">@color/black</item> -->
+        <!-- <item name="colorOnError">@color/black</item> -->
+
+        <!-- for menu text -->
+        <item name="android:textColor">@android:color/white</item>
+        <!-- for status bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>

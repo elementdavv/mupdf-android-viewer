@@ -3,7 +3,6 @@ package net.timelegend.chaka.viewer;
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,6 +18,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.OpenableColumns;
@@ -48,6 +48,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -57,7 +59,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class DocumentActivity extends Activity
+public class DocumentActivity extends AppCompatActivity
 {
 	private final String APP = "Chaka";
 
@@ -102,7 +104,6 @@ public class DocumentActivity extends Activity
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 	private boolean mReturnToLibraryActivity = false;
-    private boolean mPending = false;
     private boolean mKeybordOn = false;
 
 	protected int mDisplayDPI;
@@ -420,6 +421,18 @@ public class DocumentActivity extends Activity
 		// controls in variables
 		makeButtonsView();
 
+        // below android 8 (api26)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            TooltipCompat.setTooltipText(mSingleColumnButton, getString(R.string.single_column));
+            TooltipCompat.setTooltipText(mTextLeftButton, getString(R.string.text_left));
+            TooltipCompat.setTooltipText(mFlipVerticalButton, getString(R.string.flip_vertical));
+            TooltipCompat.setTooltipText(mFocusButton, getString(R.string.focus));
+            TooltipCompat.setTooltipText(mLinkButton, getString(R.string.link));
+            TooltipCompat.setTooltipText(mSearchButton, getString(R.string.text_search));
+            TooltipCompat.setTooltipText(mLayoutButton, getString(R.string.format_size));
+            TooltipCompat.setTooltipText(mOutlineButton, getString(R.string.toc));
+        }
+
 		// Set up the page slider
 		int smax = Math.max(core.countPages()-1,1);
 		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
@@ -430,6 +443,7 @@ public class DocumentActivity extends Activity
 			mDocNameView.setText(docTitle);
 		else
 			mDocNameView.setText(mDocTitle);
+        TooltipCompat.setTooltipText(mDocNameView, mDocNameView.getText());
 
 		// Activate the seekbar
 		mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -458,22 +472,6 @@ public class DocumentActivity extends Activity
 				searchModeOn();
 			}
 		});
-
-        mDocNameView.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (mPending) return;
-                mPending = !mPending;
-                View innerBar = mButtonsView.findViewById(R.id.innerBar);
-                innerBar.setVisibility(View.GONE);
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        innerBar.setVisibility(View.VISIBLE);
-                        mPending = !mPending;
-                    }
-                }, 1000);
-            }
-        });
 
         mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
