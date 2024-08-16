@@ -9,6 +9,7 @@
         >
 		<activity
 			android:name=".DocumentActivity"
+            android:launchMode="singleTask"
 			android:configChanges="orientation|screenSize|keyboardHidden"
 			android:exported="true"
             android:theme="@style/Theme.MyApp"
@@ -33,6 +34,7 @@
 		<activity
 			android:name=".OutlineActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden"
+            android:parentActivityName=".DocumentActivity"
 			>
 		</activity>
 	</application>

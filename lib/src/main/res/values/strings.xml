@@ -21,4 +21,6 @@
     <string name="format_size">Font Size</string>
     <string name="toc">Table of Contents</string>
 
+    <string name="contents">Contents</string>
+
 </resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="cancel">取消</string>
+	<string name="cannot_open_document">無法打開文檔</string>
+	<string name="cannot_open_document_Reason">無法打開文檔: %1$s</string>
+	<string name="dismiss">解散</string>
+	<string name="enter_password">輸入密碼</string>
+	<string name="no_further_occurrences_found">沒有更多結果</string>
+	<string name="not_supported">不支持</string>
+	<string name="okay">確定</string>
+	<string name="search">搜索&#x2026;</string>
+	<string name="searching_">正在搜索&#x2026;</string>
+	<string name="text_not_found">沒有結果</string>
+
+    <string name="single_column">分割寬頁面</string>
+    <string name="text_left">從右向左文字</string>
+    <string name="flip_vertical">垂直翻頁</string>
+    <string name="focus">聚焦</string>
+    <string name="link">鏈接</string>
+    <string name="text_search">搜索</string>
+    <string name="format_size">字體</string>
+    <string name="toc">目錄</string>
+
+    <string name="contents">目录</string>
+
+</resources>
