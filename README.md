@@ -28,7 +28,7 @@ Chaka is an android app based on MuPDF Android Viewer, plus many new features th
 
   In many scanned books, content area do not always appear centered in a page. It often near a border aside, left or right. For example, it may near right border in even page, left border in odd page, or vice versa. **Smart Focus** deals with this case. By adjusting position of even or odd pages accordingly, it makes **Focus** mode behave smartly. **Smart Focus** must work with **Focus** mode to make sense.
 
-- All above modes can work simultaneously. There is no excluded.
+- All above modes can work simultaneously. There is no exclusion.
 
 - Current size indication in **Font Size** menu
 
