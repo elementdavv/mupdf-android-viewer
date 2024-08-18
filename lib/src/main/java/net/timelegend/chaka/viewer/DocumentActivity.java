@@ -82,6 +82,7 @@ public class DocumentActivity extends AppCompatActivity
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
 	private ImageButton  mFocusButton;
+	private ImageButton  mSmartFocusButton;
 	private ImageButton  mSearchButton;
 	private ImageButton  mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
@@ -98,6 +99,7 @@ public class DocumentActivity extends AppCompatActivity
     private boolean    mTextLeftHighlight = false;
     private boolean    mFlipVerticalHighlight = false;
     private boolean    mFocusHighlight = false;
+    private boolean    mSmartFocusHighlight = false;
 	private boolean    mLinkHighlight = false;
 	private final Handler mHandler = new Handler();
 	private boolean mAlertsActive= false;
@@ -194,7 +196,7 @@ public class DocumentActivity extends AppCompatActivity
 	private void showCannotOpenDialog(String reason) {
 		Resources res = getResources();
 		AlertDialog alert = mAlertBuilder.create();
-		setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
+		alert.setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
 		alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
@@ -217,7 +219,7 @@ public class DocumentActivity extends AppCompatActivity
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		mDisplayDPI = (int)metrics.densityDpi;
 
-		mAlertBuilder = new AlertDialog.Builder(this);
+		mAlertBuilder = new AlertDialog.Builder(this, R.style.MyDialog);
 
 		if (core == null) {
 			if (savedInstanceState != null && savedInstanceState.containsKey("DocTitle")) {
@@ -497,6 +499,12 @@ public class DocumentActivity extends AppCompatActivity
             }
         });
 
+        mSmartFocusButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleSmartFocus();
+            }
+        });
+
 		mSearchClose.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				searchModeOff();
@@ -751,9 +759,15 @@ public class DocumentActivity extends AppCompatActivity
     private void toggleSingleColumnHighlight() {
         int index;
         if (!mSingleColumnHighlight) {
-            if (!mDocView.isWide()) return;
+            if (!mDocView.isWide()) {
+                callAlert(R.string.is_not_wide);
+                return;
+            }
 		    index = mDocView.getDisplayedViewIndex();
-            if (index == 0 || index == (core.countPages() - 1)) return;
+            if (index == 0 || index == (core.countPages() - 1)) {
+                callAlert(R.string.first_last_page);
+                return;
+            }
         }
         mSingleColumnHighlight = !mSingleColumnHighlight;
 		// COLOR tint
@@ -767,6 +781,13 @@ public class DocumentActivity extends AppCompatActivity
 		updatePageNumView(index);
         updatePageSlider(index);
 		mFlatOutline = null;
+    }
+
+    private void callAlert(int msg) {
+        new AlertDialog.Builder(this, R.style.MyDialog)
+                .setTitle(msg)
+                .setPositiveButton(R.string.dismiss, null)
+                .show();
     }
 
     private void toggleTextLeftHighlight() {
@@ -795,6 +816,14 @@ public class DocumentActivity extends AppCompatActivity
 		mFocusButton.setColorFilter(mFocusHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
 		// Inform pages of the change.
 		mDocView.toggleFocus();
+    }
+
+    private void toggleSmartFocus() {
+		mSmartFocusHighlight = !mSmartFocusHighlight;
+		// COLOR tint
+		mSmartFocusButton.setColorFilter(mSmartFocusHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		// Inform pages of the change.
+		mDocView.toggleSmartFocus();
     }
 
 	private void setLinkHighlight(boolean highlight) {
@@ -927,6 +956,7 @@ public class DocumentActivity extends AppCompatActivity
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
         mFocusButton = (ImageButton)mButtonsView.findViewById(R.id.focusButton);
+        mSmartFocusButton = (ImageButton)mButtonsView.findViewById(R.id.smartFocusButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
 		mSearchClear = (ImageButton)mButtonsView.findViewById(R.id.searchClear);

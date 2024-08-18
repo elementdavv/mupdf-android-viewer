@@ -13,14 +13,17 @@
 	<string name="text_not_found">没有结果</string>
 
     <string name="single_column">分割宽页面</string>
-    <string name="text_left">从右向左文字</string>
+    <string name="text_left">前进: 左 &lt;-- 右</string>
     <string name="flip_vertical">垂直翻页</string>
     <string name="focus">聚焦</string>
+    <string name="smart_focus">智能聚焦</string>
     <string name="link">链接</string>
     <string name="text_search">搜索</string>
     <string name="format_size">字体</string>
     <string name="toc">目录</string>
 
     <string name="contents">目录</string>
+    <string name="is_not_wide">单列模式只适用于宽页面</string>
+    <string name="first_last_page">另换一页</string>
 
 </resources>

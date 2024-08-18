@@ -23,4 +23,8 @@
         <!-- for status bar -->
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+
+    <style name="MyDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:windowNoTitle">false</item>
+    </style>
 </resources>

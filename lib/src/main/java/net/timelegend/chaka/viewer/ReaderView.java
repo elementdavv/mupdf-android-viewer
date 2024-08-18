@@ -69,6 +69,7 @@ public class ReaderView
     private boolean       mTextLeft = false;
     private boolean       mHorizontalScrolling = true;
     private boolean       mFocus = false;
+    private boolean       mSmartFocus = false;
     private int           mPrevLeft;
     private int           mPrevTop;
 
@@ -137,7 +138,7 @@ public class ReaderView
 	public void setDisplayedViewIndex(int i) {
 		if (0 <= i && i < mAdapter.getCount()) {
             if (mFocus) {
-                savePosition(getDisplayedView());
+                savePosition(getDisplayedView(), sameSide(mCurrent, i));
             }
 			onMoveOffChild(mCurrent);
 			mCurrent = i;
@@ -355,7 +356,7 @@ public class ReaderView
 	public void refresh() {
 		mResetLayout = true;
 
-        savePosition(null);
+        savePosition(null, true);
 		mScale = 1.0f;
 		mXScroll = mYScroll = 0;
 
@@ -1110,9 +1111,24 @@ public class ReaderView
         return v.getMeasuredWidth() > v.getMeasuredHeight();
     }
 
-    public void savePosition(View cv) {
-        mPrevLeft = cv == null ? 0 : cv.getLeft();
-        mPrevTop = cv == null ? 0 : cv.getTop();
+    /*
+     * both even or odd page
+     */
+    private boolean sameSide(int i, int j) {
+        return (i + j) % 2 == 0;
+    }
+
+    public void savePosition(View cv, boolean sameSide) {
+        mPrevLeft = 0;
+        mPrevTop = 0;
+        if (cv != null) {
+            int smart = cv.getLeft();
+            if (mSmartFocus && !sameSide) {
+                smart = -(cv.getRight() - getWidth());
+            }
+            mPrevLeft = smart;
+            mPrevTop = cv.getTop();
+        }
     }
 
     /*
@@ -1130,19 +1146,38 @@ public class ReaderView
     private boolean scrollOne(int dir, int xOffset, int yOffset) {
         if (!(dir == 1 || dir == -1)) return false;
 
+        /*
+         * generally, v.left <= 0, v.right >= getWidth()(screen width)
+         * v.right - v.left = v.width
+         */
         View v = mChildViews.get(mCurrent);
         if (v == null)
             return false;
 
+        /*
+         * and nv.left, nv.right are both far off the screen
+         * their values are both negative or both positive
+         */
         View nv = mChildViews.get(mCurrent + dir);
         if (nv == null)
             return false;
 
+        int smart = 0;
         if (mHorizontalScrolling) {
-            if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
-                xOffset += nv.getWidth();
-            else
-                xOffset -= v.getWidth();
+            if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1)) {
+                // only when zoomed in
+                if (mSmartFocus && nv.getWidth() > getWidth()) {
+                    // account its width to left and right value
+                    smart = nv.getRight() - getWidth() + nv.getLeft() + 2 * nv.getWidth();
+                }
+                xOffset += nv.getWidth() - smart;
+            }
+            else {
+                if (mSmartFocus && v.getWidth() > getWidth()) {
+                    smart = v.getRight() - getWidth() + v.getLeft();
+                }
+                xOffset -= v.getWidth() + smart;
+            }
         }
         else {
             if ((mTextLeft && dir == 1) || (!mTextLeft && dir == -1))
@@ -1150,6 +1185,7 @@ public class ReaderView
             else
                 yOffset -= v.getHeight();
         }
+
 		mScrollerLastX = mScrollerLastY = 0;
 		mScroller.startScroll(0, 0, xOffset, yOffset, 400);
 		mStepper.prod();
@@ -1236,6 +1272,10 @@ public class ReaderView
             }
         });
         focusStepper.prod();
+    }
+
+    public void toggleSmartFocus() {
+        mSmartFocus = !mSmartFocus;
     }
 
 	protected void onChildSetup(int i, View v) {

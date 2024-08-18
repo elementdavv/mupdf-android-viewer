@@ -86,6 +86,15 @@
 				/>
 
 			<ImageButton
+				android:id="@+id/smartFocusButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@drawable/button"
+				android:src="@drawable/ic_smart_focus_white_24dp"
+                android:tooltipText="@string/smart_focus"
+				/>
+
+			<ImageButton
 				android:id="@+id/linkButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
