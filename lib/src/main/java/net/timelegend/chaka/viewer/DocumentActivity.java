@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Handler;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -396,6 +397,21 @@ public class DocumentActivity extends AppCompatActivity
 
 			@Override
 			public void onSizeChanged(int w, int h, int oldw, int oldh) {
+                // ajust doc name width
+                new Handler().postDelayed(new Runnable(){
+                    public void run() {
+                        int BUTTON_WIDTH = 160;
+                        int cbut = 7;
+                        if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
+                        if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
+                        int tw = w - BUTTON_WIDTH * cbut;
+                        int titlebytelen = mDocNameView.getText().toString().getBytes().length;
+                        int titlewidth = titlebytelen * 32;
+                        int minwidth = Math.min(titlewidth, 360);
+                        tw = Math.max(tw, minwidth);
+                        mDocNameView.setWidth(tw);
+                    }}, 200);
+
 				if (core.isReflowable()) {
 					mLayoutW = w * 72 / mDisplayDPI;
 					mLayoutH = h * 72 / mDisplayDPI;
@@ -468,13 +484,6 @@ public class DocumentActivity extends AppCompatActivity
 			}
 		});
 
-		// Activate the search-preparing button
-		mSearchButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				searchModeOn();
-			}
-		});
-
         mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 toggleSingleColumnHighlight();
@@ -504,6 +513,13 @@ public class DocumentActivity extends AppCompatActivity
                 toggleSmartFocus();
             }
         });
+
+		// Activate the search-preparing button
+		mSearchButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				searchModeOn();
+			}
+		});
 
 		mSearchClose.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -588,6 +604,7 @@ public class DocumentActivity extends AppCompatActivity
 				search(-1);
 			}
 		});
+
 		mSearchFwd.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				search(1);
@@ -683,6 +700,11 @@ public class DocumentActivity extends AppCompatActivity
 		setContentView(layout);
 	}
 
+	private void setButtonEnabled(ImageButton button, boolean enabled) {
+		button.setEnabled(enabled);
+		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -736,8 +758,8 @@ public class DocumentActivity extends AppCompatActivity
 		}
 	}
 
-	public void onDestroy()
-	{
+	@Override
+	protected void onDestroy() {
 		if (mDocView != null) {
 			mDocView.applyToChildren(new ReaderView.ViewMapper() {
 				void applyToView(View view) {
@@ -749,11 +771,6 @@ public class DocumentActivity extends AppCompatActivity
 			core.onDestroy();
 		core = null;
 		super.onDestroy();
-	}
-
-	private void setButtonEnabled(ImageButton button, boolean enabled) {
-		button.setEnabled(enabled);
-		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
 	}
 
     private void toggleSingleColumnHighlight() {
