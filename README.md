@@ -28,23 +28,21 @@ Chaka is an android app based on MuPDF Android Viewer, plus many new features th
 
   **Smart Focus** must work with **Focus** mode to make sense.
 
-- All the modes above are compatible. They can work together
-
 - Continuous scrolling
 
   Continuous scrolling is a more charming feature for book reading experience. Instead of changing to prev or next page at one tap, it can scroll across several pages freely and quickly, in both horizontal and vertical flipping mode. It can also scroll to and stay at any position of a page, or slide automatically to the nearest whole page, according to current working status.
 
 - <img src="resources/format.png"> Font size
 
-  Current font size indicated in **Font Size** menu. **Font Size** button will appear if the document is flowable, e.g. epub.
+  Current font size is indicated in **Font Size** menu. The **Font Size** button will appear if the document is flowable, e.g. epub.
 
 - <img src="resources/toc.png"> Table of Contents
 
-  **Table of Contents** support multi-level headings, and headings collapsing and expanding. **Table of Contents** button will appear if the document has an ToC.
+  **Table of Contents** support multi-level headings, and headings collapsing and expanding. The **Table of Contents** button will appear if the document has an ToC.
 
 - Scrollable Toobar
 
-  Make toolbar scrollable to accommodate more buttons.
+  The top toolbar is made scrollable to accommodate more buttons.
 
 ## Watch what the new functions look like
 <a src="https://www.youtube.com/watch?v=b-v8aNi6bc0">https://www.youtube.com/watch?v=b-v8aNi6bc0</a>
