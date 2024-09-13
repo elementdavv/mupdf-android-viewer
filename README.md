@@ -30,7 +30,7 @@ Chaka is an android app based on MuPDF Android Viewer, plus many new features th
 
 - Continuous scrolling
 
-  Continuous scrolling is a more charming feature for book reading experience. Instead of changing to prev or next page at one tap, it can scroll across several pages freely and quickly, in both horizontal and vertical flipping mode. It can also scroll to and stay at any position of a page, or slide automatically to the nearest whole page, according to current working status.
+  Continuous scrolling is a more charming feature for book reading experience. Instead of changing to prev or next page at one tap, it can scroll across several pages smoothly and quickly, in both horizontal and vertical flipping mode. It can also scroll to and stay at any position of a page, or slide automatically to the nearest whole page, according to current working status.
 
 - <img src="resources/format.png"> Font size
 

@@ -320,8 +320,11 @@ public class PageView extends ViewGroup {
 				if (result.booleanValue()) {
 					clearRenderError();
                     if (mCore.isSplitPage(mPageNumber)) {
-                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
-                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
+                        int cx = getColumnX(mEntireBm.getWidth());
+                        if (cx == 0)
+                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
+                        else
+                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, (mEntireBm.getWidth() + 1) / 2, mEntireBm.getHeight());
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -524,6 +527,10 @@ public class PageView extends ViewGroup {
 			// Offset patch area to be relative to the view top left
 			patchArea.offset(-viewArea.left, -viewArea.top);
 
+            if (mCore.isSplitPage(mPageNumber) && mCore.isRightPage(mPageNumber)) {
+                patchArea.offset(-viewArea.width(), 0);
+            }
+
 			boolean area_unchanged = patchArea.equals(mPatchArea) && patchViewSize.equals(mPatchViewSize);
 
 			// If being asked for the same area as last time and not because of an update then nothing to do
@@ -566,8 +573,11 @@ public class PageView extends ViewGroup {
 						mPatchArea = patchArea;
 						clearRenderError();
                         if (mCore.isSplitPage(mPageNumber)) {
-                            int cx = getColumnX(patchViewSize.x, mPatchBm.getWidth());
-                            mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, mPatchBm.getWidth() / 2, mPatchBm.getHeight());
+                            int cx = getColumnX(mPatchBm.getWidth());
+                            if (cx == 0)
+                                mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, mPatchBm.getWidth() / 2, mPatchBm.getHeight());
+                            else
+                                mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, (mPatchBm.getWidth() + 1) / 2, mPatchBm.getHeight());
 					        mPatch.setImageBitmap(mColumnBm);
                         }
                         else
@@ -606,8 +616,11 @@ public class PageView extends ViewGroup {
 				if (result.booleanValue()) {
 					clearRenderError();
                     if (mCore.isSplitPage(mPageNumber)) {
-                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
-                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mSize.x, mSize.y);
+                        int cx = getColumnX(mEntireBm.getWidth());
+                        if (cx == 0)
+                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
+                        else
+                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, (mEntireBm.getWidth() + 1) / 2, mEntireBm.getHeight());
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -752,10 +765,7 @@ public class PageView extends ViewGroup {
     /*
      * for splitted page
      */
-    private int getColumnX(int sx, int bmw) {
-        if (!mCore.isRightPage(mPageNumber)) {
-            return 0;
-        }
-        return 2 * sx > bmw ? bmw - sx : sx;
+    private int getColumnX(int bmw) {
+        return mCore.isRightPage(mPageNumber) ? bmw / 2 : 0;
     }
 }

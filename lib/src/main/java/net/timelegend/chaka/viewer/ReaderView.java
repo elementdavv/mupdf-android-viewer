@@ -402,12 +402,14 @@ public class ReaderView
 			// The layout is stable
 			View v = mChildViews.get(mCurrent);
 
-            // handle scroll end at page middle
-            if ((mHorizontalScrolling && !mTextLeft) || (!mHorizontalScrolling && mTextLeft))
-                slideViewOntoScreen(v);
+			if (v != null) {
+                // handle scroll end at page middle
+                if ((mHorizontalScrolling && !mTextLeft) || (!mHorizontalScrolling && mTextLeft))
+                    slideViewOntoScreen(v);
 
-			if (v != null)
-				postSettle(v);
+				if (mScroller.isFinished())
+				    postSettle(v);
+            }
 		}
 	}
 
@@ -533,13 +535,17 @@ public class ReaderView
 		}
 		if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
 			mUserInteracting = false;
-            // stay layout on scroll
-            if ((!mHorizontalScrolling && !mTextLeft) || (mHorizontalScrolling && mTextLeft)) {
-                return true;
-            }
-
 			View v = mChildViews.get(mCurrent);
+
 			if (v != null) {
+                // stay layout on scroll
+                if ((!mHorizontalScrolling && !mTextLeft) || (mHorizontalScrolling && mTextLeft)) {
+		            if (mScroller.isFinished()) {
+			            postSettle(v);
+		            }
+                    return true;
+                }
+
 				if (mScroller.isFinished()) {
 					// If, at the end of user interaction, there is no
 					// current inertial scroll in operation then animate
@@ -608,7 +614,7 @@ public class ReaderView
 					postUnsettle(cv);
 					// post to invoke test for end of animation
 					// where we must set hq area for the new current view
-					// mStepper.prod();
+					mStepper.prod();
 
 					onMoveOffChild(mCurrent);
 					mCurrent++;
@@ -620,7 +626,7 @@ public class ReaderView
 					postUnsettle(cv);
 					// post to invoke test for end of animation
 					// where we must set hq area for the new current view
-					// mStepper.prod();
+					mStepper.prod();
 
 					onMoveOffChild(mCurrent);
 					mCurrent--;
@@ -637,7 +643,7 @@ public class ReaderView
 					postUnsettle(cv);
 					// post to invoke test for end of animation
 					// where we must set hq area for the new current view
-					// mStepper.prod();
+					mStepper.prod();
 
 					onMoveOffChild(mCurrent);
 					mCurrent--;
@@ -649,7 +655,7 @@ public class ReaderView
 					postUnsettle(cv);
 					// post to invoke test for end of animation
 					// where we must set hq area for the new current view
-					// mStepper.prod();
+					mStepper.prod();
 
 					onMoveOffChild(mCurrent);
 					mCurrent++;
@@ -692,7 +698,7 @@ public class ReaderView
 			mChildViews.clear();
 
 			// post to ensure generation of hq area
-			// mStepper.prod();
+			mStepper.prod();
 		}
 
 		// Ensure current view is present
@@ -1060,7 +1066,7 @@ public class ReaderView
      */
     public void savePosition(int i) {
         View cv = getDisplayedView();
-        int mPrevLeft = cv.getLeft();
+        mPrevLeft = cv.getLeft();
         if (mSmartFocus && !sameSide(mCurrent, i)) {
             mPrevLeft = -(cv.getRight() - getWidth());
         }
@@ -1287,7 +1293,7 @@ public class ReaderView
 
     public void toggleFocus() {
         mFocus = !mFocus;
-        mPrevLeft = mPrevLeft = 0;
+        mPrevLeft = mPrevTop = 0;
         PageView pv = (PageView) getDisplayedView();
         float pvwidth = (float)pv.getWidth();
         float pvheight = (float)pv.getHeight();
@@ -1337,6 +1343,9 @@ public class ReaderView
                 else {
                     mScale = scaleTo;
                     requestLayout();
+		            if (mScroller.isFinished()) {
+			            postSettle(pv);
+		            }
                 }
             }
         });
@@ -1371,14 +1380,14 @@ public class ReaderView
 	protected void onSettle(View v) {
 		// When the layout has settled ask the page to render
 		// in HQ
-        // i don't see any sense of this method, and it cause splitted page scaled display abnormally, comment out
-		// ((PageView) v).updateHq(false);
+        // this will update from original data when zoomed to make text clear
+		((PageView) v).updateHq(false);
 	}
 
 	protected void onUnsettle(View v) {
 		// When something changes making the previous settled view
 		// no longer appropriate, tell the page to remove HQ
-		// ((PageView) v).removeHq();
+		((PageView) v).removeHq();
 	}
 
 	protected void onNotInUse(View v) {
