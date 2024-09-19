@@ -7,6 +7,7 @@ import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Outline;
 import com.artifex.mupdf.fitz.Page;
+import com.artifex.mupdf.fitz.PDFPage;
 import com.artifex.mupdf.fitz.Quad;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
@@ -16,11 +17,13 @@ import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class MuPDFCore
 {
+	private final String APP = "Chaka";
 	private int resolution;
 	private Document doc;
 	private Outline[] outline;
@@ -33,6 +36,7 @@ public class MuPDFCore
 	private DisplayList displayList;
     private boolean singleColumnMode = false;
     private boolean textLeftMode = false;
+    private boolean cropMarginMode = false;
 
 	/* Default to "A Format" pocket book size. */
 	private int layoutW = 312;
@@ -113,6 +117,25 @@ public class MuPDFCore
                 pageNum = realPage(pageNum);
 				page = doc.loadPage(pageNum);
 				Rect b = page.getBounds();
+
+                if (doc.isPDF()) {
+                    PDFPage pdfpage = (PDFPage)page;
+                    Rect r;
+                    if (cropMarginMode) {
+                        r = pdfpage.getBBox();
+                        r.inset(-4, -4, -4, -4);
+                        r.x0 = Math.max(r.x0, b.x0);
+                        r.y0 = Math.max(r.y0, b.y0);
+                        r.x1 = Math.min(r.x1, b.x1);
+                        r.y1 = Math.min(r.y1, b.y1);
+                    }
+                    else {
+                        r = page.getBounds(Page.MEDIA_BOX);
+                    }
+                    pdfpage.setCropBox(r);
+				    b = page.getBounds();
+                }
+
 				pageWidth = b.x1 - b.x0;
 				pageHeight = b.y1 - b.y0;
 			}
@@ -193,6 +216,10 @@ public class MuPDFCore
         textLeftMode = !textLeftMode;
     }
 
+    public void toggleCropMargin() {
+        cropMarginMode = !cropMarginMode;
+    }
+
 	public synchronized Link[] getPageLinks(int pageNum) {
 		gotoPage(pageNum);
 		return page != null ? page.getLinks() : null;
@@ -257,6 +284,10 @@ public class MuPDFCore
 		flattenOutlineNodes(result, outline, "", 0);
 		return result;
 	}
+
+    public boolean isPDF() {
+        return doc.isPDF();
+    }
 
     public boolean isSingleColumn() {
         return singleColumnMode;

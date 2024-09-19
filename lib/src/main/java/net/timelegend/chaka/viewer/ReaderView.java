@@ -1287,6 +1287,10 @@ public class ReaderView
 		requestLayout();
     }
 
+    public void toggleCropMargin() {
+        refresh();
+    }
+
     float scaleTo, scaleStep;
     int xScrollStep, yScrollStep, step;
     Stepper focusStepper;

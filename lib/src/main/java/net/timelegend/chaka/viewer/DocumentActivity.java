@@ -82,6 +82,7 @@ public class DocumentActivity extends AppCompatActivity
     private ImageButton  mSingleColumnButton;
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
+	private ImageButton  mCropMarginButton;
 	private ImageButton  mFocusButton;
 	private ImageButton  mSmartFocusButton;
 	private ImageButton  mSearchButton;
@@ -99,6 +100,7 @@ public class DocumentActivity extends AppCompatActivity
     private boolean    mSingleColumnHighlight = false;
     private boolean    mTextLeftHighlight = false;
     private boolean    mFlipVerticalHighlight = false;
+    private boolean    mCropMarginHighlight = false;
     private boolean    mFocusHighlight = false;
     private boolean    mSmartFocusHighlight = false;
 	private boolean    mLinkHighlight = false;
@@ -401,7 +403,8 @@ public class DocumentActivity extends AppCompatActivity
                 new Handler().postDelayed(new Runnable(){
                     public void run() {
                         int BUTTON_WIDTH = 160;
-                        int cbut = 7;
+                        // toolbar buttons count
+                        int cbut = 8;
                         if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
                         if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
                         int tw = w - BUTTON_WIDTH * cbut;
@@ -444,6 +447,7 @@ public class DocumentActivity extends AppCompatActivity
             TooltipCompat.setTooltipText(mSingleColumnButton, getString(R.string.single_column));
             TooltipCompat.setTooltipText(mTextLeftButton, getString(R.string.text_left));
             TooltipCompat.setTooltipText(mFlipVerticalButton, getString(R.string.flip_vertical));
+            TooltipCompat.setTooltipText(mCropMarginButton, getString(R.string.crop_margin));
             TooltipCompat.setTooltipText(mFocusButton, getString(R.string.focus));
             TooltipCompat.setTooltipText(mLinkButton, getString(R.string.link));
             TooltipCompat.setTooltipText(mSearchButton, getString(R.string.text_search));
@@ -499,6 +503,12 @@ public class DocumentActivity extends AppCompatActivity
         mFlipVerticalButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 toggleFlipVerticalHighlight();
+            }
+        });
+
+        mCropMarginButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleCropMargin();
             }
         });
 
@@ -827,6 +837,19 @@ public class DocumentActivity extends AppCompatActivity
 		mDocView.toggleFlipVertical();
 	}
 
+    private void toggleCropMargin() {
+        if (!core.isPDF()) {
+            callAlert(R.string.is_not_pdf);
+            return;
+        }
+		mCropMarginHighlight = !mCropMarginHighlight;
+		// COLOR tint
+		mCropMarginButton.setColorFilter(mCropMarginHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		// Inform pages of the change.
+		core.toggleCropMargin();
+		mDocView.toggleCropMargin();
+    }
+
     private void toggleFocus() {
 		mFocusHighlight = !mFocusHighlight;
 		// COLOR tint
@@ -973,6 +996,7 @@ public class DocumentActivity extends AppCompatActivity
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
         mFocusButton = (ImageButton)mButtonsView.findViewById(R.id.focusButton);
+        mCropMarginButton = (ImageButton)mButtonsView.findViewById(R.id.cropMarginButton);
         mSmartFocusButton = (ImageButton)mButtonsView.findViewById(R.id.smartFocusButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);

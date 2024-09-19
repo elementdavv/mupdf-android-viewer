@@ -15,6 +15,7 @@
     <string name="single_column">Single Column</string>
     <string name="text_left">Forward: Left &lt;-- Right</string>
     <string name="flip_vertical">Flip Vertical</string>
+    <string name="crop_margin">Crop Margin</string>
     <string name="focus">Focus</string>
     <string name="smart_focus">Smart Focus</string>
     <string name="link">Links</string>
@@ -24,6 +25,7 @@
 
     <string name="contents">Contents</string>
     <string name="is_not_wide">Single Column mode works only in wide page</string>
-    <string name="first_last_page">Change another page</string>
+    <string name="is_not_pdf">Crop Margin works only in PDF document</string>
+    <string name="first_last_page">Change to another page</string>
 
 </resources>

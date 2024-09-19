@@ -1,3 +1,4 @@
+include ':fitz'
 include ':jni'
 include ':lib'
 include ':app'

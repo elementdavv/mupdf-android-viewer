@@ -76,6 +76,15 @@
 				/>
 
 			<ImageButton
+				android:id="@+id/cropMarginButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@drawable/button"
+				android:src="@drawable/ic_crop_margin_white_24dp"
+                android:tooltipText="@string/crop_margin"
+				/>
+
+			<ImageButton
 				android:id="@+id/focusButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
