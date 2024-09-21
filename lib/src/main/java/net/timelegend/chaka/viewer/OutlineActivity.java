@@ -124,6 +124,7 @@ public class OutlineActivity extends Activity
         public void onBindViewHolder(ViewHolder holder, int position) {
             Item item = outline2.get(position);
             holder.titleView.setText(item.title);
+            holder.titleView.setPadding(80 * item.level, 0, 0, 0);
 
             if (item.count == 0)
                 holder.openView.setText("");
@@ -164,6 +165,7 @@ public class OutlineActivity extends Activity
     protected ArrayList<Item> outline;
 	protected int found = -1;
 
+    @SuppressWarnings("unchecked")
     protected ArrayList<Item> getOutline() {
         ArrayList<Item> result = new ArrayList<Item>();
 		int idx = getIntent().getIntExtra("PALLETBUNDLE", -1);

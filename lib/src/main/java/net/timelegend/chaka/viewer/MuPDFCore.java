@@ -17,13 +17,11 @@ import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
-import android.util.Log;
 
 import java.util.ArrayList;
 
 public class MuPDFCore
 {
-	private final String APP = "Chaka";
 	private int resolution;
 	private Document doc;
 	private Outline[] outline;
@@ -116,24 +114,10 @@ public class MuPDFCore
 			if (doc != null) {
                 pageNum = realPage(pageNum);
 				page = doc.loadPage(pageNum);
-				Rect b = page.getBounds();
+                Rect b = page.getBounds();
 
-                if (doc.isPDF()) {
-                    PDFPage pdfpage = (PDFPage)page;
-                    Rect r;
-                    if (cropMarginMode) {
-                        r = pdfpage.getBBox();
-                        r.inset(-4, -4, -4, -4);
-                        r.x0 = Math.max(r.x0, b.x0);
-                        r.y0 = Math.max(r.y0, b.y0);
-                        r.x1 = Math.min(r.x1, b.x1);
-                        r.y1 = Math.min(r.y1, b.y1);
-                    }
-                    else {
-                        r = page.getBounds(Page.MEDIA_BOX);
-                    }
-                    pdfpage.setCropBox(r);
-				    b = page.getBounds();
+                if (cropMarginMode) {
+                    b = getBBox(b);
                 }
 
 				pageWidth = b.x1 - b.x0;
@@ -185,10 +169,21 @@ public class MuPDFCore
 
 		float zoom = resolution / 72;
 		Matrix ctm = new Matrix(zoom, zoom);
-		RectI bbox = new RectI(page.getBounds().transform(ctm));
+        Rect b = page.getBounds();
+
+        if (cropMarginMode) {
+            b = getBBox(b);
+        }
+
+		RectI bbox = new RectI(b.transform(ctm));
 		float xscale = (float)pageW / (float)(bbox.x1-bbox.x0);
 		float yscale = (float)pageH / (float)(bbox.y1-bbox.y0);
 		ctm.scale(xscale, yscale);
+
+        if (cropMarginMode) {
+            patchX += bbox.x0 * xscale;
+            patchY += bbox.y0 * yscale;
+        }
 
 		AndroidDrawDevice dev = new AndroidDrawDevice(bm, patchX, patchY);
 		try {
@@ -217,6 +212,9 @@ public class MuPDFCore
     }
 
     public void toggleCropMargin() {
+        // force reread pagesize of current page
+        // prevent display distort when uncrop margin after a page scale
+        currentPage = -1;
         cropMarginMode = !cropMarginMode;
     }
 
@@ -264,29 +262,54 @@ public class MuPDFCore
 		return outline != null;
 	}
 
-	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent, int level) {
+	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], int level) {
 		for (Outline node : list) {
 			if (node.title != null) {
 				int pageNum = correctPage(doc.pageNumberFromLocation(doc.resolveLink(node)));
                 int count = 0;
-                if (node.down != null && node.down.length > 0) {
+                if (node.down != null) {
                     count = node.down.length;
                 }
-				result.add(new OutlineActivity.Item(indent + node.title, pageNum, level, count));
+				result.add(new OutlineActivity.Item(node.title, pageNum, level, count));
+			    if (count > 0)
+				    flattenOutlineNodes(result, node.down, level + 1);
 			}
-			if (node.down != null)
-				flattenOutlineNodes(result, node.down, indent + "    ", level + 1);
 		}
 	}
 
 	public synchronized ArrayList<OutlineActivity.Item> getOutline() {
 		ArrayList<OutlineActivity.Item> result = new ArrayList<OutlineActivity.Item>();
-		flattenOutlineNodes(result, outline, "", 0);
+		flattenOutlineNodes(result, outline, 0);
 		return result;
 	}
 
-    public boolean isPDF() {
-        return doc.isPDF();
+    private Rect getBBox(Rect b) {
+        Rect r = page.getBBox();
+        r.inset(-2, -2, -2, -2);
+
+        // an option: let r similar to b
+        // that results in less better effect but consistent display
+        //
+        // float rw = r.x1 - r.x0;
+        // float rh = r.y1 - r.y0;
+        // float sr = rh / rw;
+        // float sb = (b.y1 - b.y0) / (b.x1 - b.x0);
+        // float delta;
+        // if (sr < sb) {
+        //     float rh2 = rw * sb;
+        //     delta = (rh2 - rh) / 2;
+        //     r.y0 -= delta;
+        //     r.y1 += delta;
+        // }
+        // else if (sr > sb) {
+        //     float rw2 = rh / sb;
+        //     delta = (rw2 - rw) / 2;
+        //     r.x0 -= delta;
+        //     r.x1 += delta;
+        // }
+        //
+
+        return r;
     }
 
     public boolean isSingleColumn() {

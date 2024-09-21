@@ -838,10 +838,6 @@ public class DocumentActivity extends AppCompatActivity
 	}
 
     private void toggleCropMargin() {
-        if (!core.isPDF()) {
-            callAlert(R.string.is_not_pdf);
-            return;
-        }
 		mCropMarginHighlight = !mCropMarginHighlight;
 		// COLOR tint
 		mCropMarginButton.setColorFilter(mCropMarginHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));

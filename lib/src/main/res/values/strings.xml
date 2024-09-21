@@ -25,7 +25,6 @@
 
     <string name="contents">Contents</string>
     <string name="is_not_wide">Single Column mode works only in wide page</string>
-    <string name="is_not_pdf">Crop Margin works only in PDF document</string>
     <string name="first_last_page">Change to another page</string>
 
 </resources>
