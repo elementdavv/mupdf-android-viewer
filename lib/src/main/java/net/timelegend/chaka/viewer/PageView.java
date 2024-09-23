@@ -19,7 +19,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -349,36 +348,13 @@ public class PageView extends ViewGroup {
                     int viewWidth = getWidth();
 					final float scale = mSourceScale*(float)viewWidth/(float)mSize.x;
 					final Paint paint = new Paint();
+                    PointF renOff = mCore.getRenderOffset(mPageNumber);
 
 					if (!mIsBlank && mSearchBoxes != null) {
 						paint.setColor(HIGHLIGHT_COLOR);
 						for (Quad[] searchBox : mSearchBoxes) {
 							for (Quad q : searchBox) {
-								Path path = new Path();
-                                float urx = q.ur_x * scale;
-                                float ulx = q.ul_x * scale;
-                                float lrx = q.lr_x * scale;
-                                float llx = q.ll_x * scale;
-                                if (mCore.isSplitPage(mPageNumber)) {
-                                    if (mCore.isRightPage(mPageNumber)) {
-                                        if (urx < viewWidth) continue;
-                                        urx -= viewWidth;
-                                        ulx -= viewWidth;
-                                        if (ulx < 0) ulx = 0;
-                                        lrx -= viewWidth;
-                                        llx -= viewWidth;
-                                        if (llx < 0) llx = 0;
-                                    }
-                                    else {
-                                        if (ulx > viewWidth) continue;
-                                    }
-                                }
-								path.moveTo(ulx, q.ul_y * scale);
-								path.lineTo(llx, q.ll_y * scale);
-								path.lineTo(lrx, q.lr_y * scale);
-								path.lineTo(urx, q.ur_y * scale);
-								path.close();
-								canvas.drawPath(path, paint);
+                                drawRect(q.toRect(), renOff, scale, viewWidth, canvas, paint);
 							}
 						}
 					}
@@ -386,22 +362,7 @@ public class PageView extends ViewGroup {
 					if (!mIsBlank && mLinks != null && mHighlightLinks) {
 						paint.setColor(LINK_COLOR);
 						for (Link link : mLinks) {
-                            float x0 = link.getBounds().x0*scale;
-                            float x1 = link.getBounds().x1*scale;
-                            if (mCore.isSplitPage(mPageNumber)) {
-                                if (mCore.isRightPage(mPageNumber)) {
-                                    if (x1 < viewWidth) continue;
-                                    x1 -= viewWidth;
-                                    x0 -= viewWidth;
-                                    if (x0 < 0) x0 = 0;
-                                }
-                                else {
-                                    if (x0 > viewWidth) continue;
-                                }
-                            }
-							canvas.drawRect(x0, link.getBounds().y0*scale,
-									x1, link.getBounds().y1*scale,
-									paint);
+                            drawRect(link.getBounds(), renOff, scale, viewWidth, canvas, paint);
                         }
 					}
 				}
@@ -411,6 +372,26 @@ public class PageView extends ViewGroup {
 		}
 		requestLayout();
 	}
+
+    private void drawRect(com.artifex.mupdf.fitz.Rect r, PointF renOff, float scale, int viewWidth, Canvas canvas, Paint paint) {
+        r.offset(-renOff.x, -renOff.y);
+        float x0 = r.x0 * scale;
+        float x1 = r.x1 * scale;
+        float y0 = r.y0 * scale;
+        float y1 = r.y1 * scale;
+        if (mCore.isSplitPage(mPageNumber)) {
+            if (mCore.isRightPage(mPageNumber)) {
+                if (x1 < viewWidth) return;
+                x1 -= viewWidth;
+                x0 -= viewWidth;
+                if (x0 < 0) x0 = 0;
+            }
+            else {
+                if (x0 > viewWidth) return;
+            }
+        }
+        canvas.drawRect(x0, y0, x1, y1, paint);
+    }
 
 	public void setSearchBoxes(Quad searchBoxes[][]) {
 		mSearchBoxes = searchBoxes;
@@ -688,18 +669,20 @@ public class PageView extends ViewGroup {
      * < -1: hit nothing, not handled
      */
 	public int hitLink(float x, float y) {
-        if (mCore.isSplitPage(mPageNumber)) {
-            if (mCore.isRightPage(mPageNumber)) {
-                x += getWidth();
-            }
-        }
 		// Since link highlighting was implemented, the super class
 		// PageView has had sufficient information to be able to
 		// perform this method directly. Making that change would
 		// make MuPDFCore.hitLinkPage superfluous.
-		float scale = mSourceScale*(float)getWidth()/(float)mSize.x;
-		float docRelX = (x - getLeft())/scale;
-		float docRelY = (y - getTop())/scale;
+        int viewWidth = getWidth();
+		float scale = mSourceScale*(float)viewWidth/(float)mSize.x;
+        PointF renOff = mCore.getRenderOffset(mPageNumber);
+        if (mCore.isSplitPage(mPageNumber)) {
+            if (mCore.isRightPage(mPageNumber)) {
+                x += viewWidth;
+            }
+        }
+		float docRelX = (x - getLeft())/scale + renOff.x;
+		float docRelY = (y - getTop())/scale + renOff.y;
 
 		if (mLinks != null)
 			for (Link l: mLinks)

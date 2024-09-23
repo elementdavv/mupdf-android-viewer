@@ -39,7 +39,7 @@ public abstract class SearchTask {
 		mContext = context;
 		mCore = core;
 		mHandler = new Handler();
-		mAlertBuilder = new AlertDialog.Builder(context);
+		mAlertBuilder = new AlertDialog.Builder(context, R.style.MyDialog);
 	}
 
 	protected abstract void onTextFound(SearchTaskResult result);
@@ -97,8 +97,8 @@ public abstract class SearchTask {
 				if (result != null) {
 					onTextFound(result);
 				} else {
-					mAlertBuilder.setTitle(SearchTaskResult.get() == null ? R.string.text_not_found : R.string.no_further_occurrences_found);
 					AlertDialog alert = mAlertBuilder.create();
+					alert.setTitle(SearchTaskResult.get() == null ? R.string.text_not_found : R.string.no_further_occurrences_found);
 					alert.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.dismiss),
 							(DialogInterface.OnClickListener)null);
 					alert.show();

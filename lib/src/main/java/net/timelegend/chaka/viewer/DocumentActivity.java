@@ -21,7 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Handler;
+import android.os.ResultReceiver;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -109,7 +109,15 @@ public class DocumentActivity extends AppCompatActivity
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 	private boolean mReturnToLibraryActivity = false;
-    private boolean mKeybordOn = false;
+    private boolean mNavigationBar;
+    /*
+       if navigation bar is invisible. when soft keyboard is opened, it bring visible navigation bar,
+       so cause docview resized, result in document page number changes.
+       use this variable to sign a change by this case to abort onsize.
+       but in one case, that closing keyboard by navigation down button, there is no way to report.
+    */
+    private boolean mKeyboardChanged = false;
+    private boolean mKeyboardChanged2 = false;
 
 	protected int mDisplayDPI;
 	private int mLayoutEM;      // read from prefs
@@ -368,6 +376,7 @@ public class DocumentActivity extends AppCompatActivity
 	public void createUI(Bundle savedInstanceState) {
 		if (core == null)
 			return;
+        watchNavigationBar();
 
 		// Now create the UI.
 		// First create the document view
@@ -399,6 +408,11 @@ public class DocumentActivity extends AppCompatActivity
 
 			@Override
 			public void onSizeChanged(int w, int h, int oldw, int oldh) {
+                if (mKeyboardChanged) {
+                    mKeyboardChanged = false;
+                    return;
+                }
+
                 // ajust doc name width
                 new Handler().postDelayed(new Runnable(){
                     public void run() {
@@ -547,17 +561,17 @@ public class DocumentActivity extends AppCompatActivity
 		mSearchText.addTextChangedListener(new TextWatcher() {
 
 			public void afterTextChanged(Editable s) {
-				boolean haveText = s.toString().length() > 0;
+				boolean haveText = s.toString().trim().length() > 0;
 				setButtonEnabled(mSearchBack, haveText);
 				setButtonEnabled(mSearchFwd, haveText);
 
-                if (!haveText && !mKeybordOn) {
+                if (!haveText) {
                     mSearchText.requestFocus();
                     showKeyboard();
                 }
 
 				// Remove any previous search results
-				if (SearchTaskResult.get() != null && !mSearchText.getText().toString().equals(SearchTaskResult.get().txt)) {
+				if (SearchTaskResult.get() != null && !mSearchText.getText().toString().trim().equals(SearchTaskResult.get().txt)) {
 					SearchTaskResult.set(null);
 					mDocView.resetupChildren();
 				}
@@ -589,12 +603,9 @@ public class DocumentActivity extends AppCompatActivity
             public boolean onTouch(View v, MotionEvent e) {
                 switch (e.getAction()) {
                 case MotionEvent.ACTION_UP:
-                    if (!mKeybordOn) {
-                        mSearchText.requestFocus();
-                        showKeyboard();
-                        return true;
-                    }
-                    break;
+                    mSearchText.requestFocus();
+                    showKeyboard();
+                    return true;
                 default:
                     break;
                 }
@@ -714,6 +725,25 @@ public class DocumentActivity extends AppCompatActivity
 		button.setEnabled(enabled);
 		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
 	}
+
+    private void watchNavigationBar() {
+        View decorView = getWindow().getDecorView();
+        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                // if changed by keyboard, do not report
+                if (mKeyboardChanged2) {
+                    mKeyboardChanged2 = false;
+                    return;
+                }
+                if ((visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
+                    mNavigationBar = true;
+                } else {
+                    mNavigationBar = false;
+                }
+            }
+        });
+    }
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -880,7 +910,7 @@ public class DocumentActivity extends AppCompatActivity
 			updatePageNumView(index);
             updatePageSlider(index);
 			if (mTopBarMode == TopBarMode.Search) {
-                if ("".equals(mSearchText.getText().toString())) {
+                if ("".equals(mSearchText.getText().toString().trim())) {
 				    mSearchText.requestFocus();
 				    showKeyboard();
                 }
@@ -948,7 +978,7 @@ public class DocumentActivity extends AppCompatActivity
 			mTopBarMode = TopBarMode.Search;
 			//Focus on EditTextWidget
 			mSearchText.requestFocus();
-            if ("".equals(mSearchText.getText().toString())) {
+            if ("".equals(mSearchText.getText().toString().trim())) {
 			    showKeyboard();
             }
 			mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
@@ -968,6 +998,8 @@ public class DocumentActivity extends AppCompatActivity
 	}
 
     private void updatePageSlider(int index) {
+        if (core == null)
+            return;
 		mPageSlider.setMax((core.countPages()-1)*mPageSliderRes);
         if (!mTextLeftHighlight)
 			mPageSlider.setProgress(index * mPageSliderRes);
@@ -1010,29 +1042,38 @@ public class DocumentActivity extends AppCompatActivity
 	}
 
 	private void showKeyboard() {
-        if (mKeybordOn) return;
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null) {
-			imm.showSoftInput(mSearchText, 0);
-            mKeybordOn = !mKeybordOn;
+			imm.showSoftInput(mSearchText, 0, rr);
         }
 	}
 
 	private void hideKeyboard() {
-        if (!mKeybordOn) return;
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null) {
-			imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
-            mKeybordOn = !mKeybordOn;
+			imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0, rr);
         }
 	}
+
+    private ResultReceiver rr = new ResultReceiver(mHandler) {
+        @Override
+        protected void onReceiveResult(int code, Bundle data) {
+            if (code == InputMethodManager.RESULT_SHOWN
+                    || code == InputMethodManager.RESULT_HIDDEN) {
+                if (!mNavigationBar) {
+                    mKeyboardChanged = true;
+                    mKeyboardChanged2 = true;
+                }
+            }
+        }
+    };
 
 	private void search(int direction) {
 		hideKeyboard();
 		int displayPage = mDocView.getDisplayedViewIndex();
 		SearchTaskResult r = SearchTaskResult.get();
 		int searchPage = r != null ? r.pageNumber : -1;
-		mSearchTask.go(mSearchText.getText().toString(), direction, displayPage, searchPage);
+		mSearchTask.go(mSearchText.getText().toString().trim(), direction, displayPage, searchPage);
 	}
 
 	@Override

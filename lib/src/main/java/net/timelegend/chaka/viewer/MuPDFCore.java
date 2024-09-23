@@ -283,7 +283,7 @@ public class MuPDFCore
 		return result;
 	}
 
-    private Rect getBBox(Rect b) {
+    private synchronized Rect getBBox(Rect b) {
         Rect r = page.getBBox();
         r.inset(-2, -2, -2, -2);
 
@@ -310,6 +310,18 @@ public class MuPDFCore
         //
 
         return r;
+    }
+
+    public synchronized PointF getRenderOffset(int pageNum) {
+		gotoPage(pageNum);
+        if (cropMarginMode) {
+            Rect b = page.getBounds();
+            Rect bb = getBBox(b);
+            float dx = bb.x0 - b.x0;
+            float dy = bb.y0 - b.y0;
+            return new PointF(dx, dy);
+        }
+        return new PointF(0, 0);
     }
 
     public boolean isSingleColumn() {
