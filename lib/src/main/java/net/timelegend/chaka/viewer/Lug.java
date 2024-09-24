@@ -4,25 +4,25 @@ import android.util.Log;
 
 public class Lug
 {
-	private static final String TAG = "Chaka";
+	private final static String TAG = "Chaka";
 
-    public static void i(String message) {
-        Log.i(TAG, message);
+    public final static <T> void i(T v) {
+        Log.i(TAG, v.toString());
     }
 
-    public static void w(String message) {
-        Log.w(TAG, message);
+    public final static <T> void w(T v) {
+        Log.w(TAG, v.toString());
     }
 
-    public static void e(String message) {
-        Log.e(TAG, message);
+    public final static <T> void e(T v) {
+        Log.e(TAG, v.toString());
     }
 
-    public static void d(String message) {
-        Log.d(TAG, message);
+    public final static <T> void d(T v) {
+        Log.d(TAG, v.toString());
     }
 
-    public static void v(String message) {
-        Log.v(TAG, message);
+    public final static <T> void v(T v) {
+        Log.v(TAG, v.toString());
     }
 }

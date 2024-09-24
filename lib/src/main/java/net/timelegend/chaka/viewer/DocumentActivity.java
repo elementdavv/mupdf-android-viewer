@@ -1,6 +1,7 @@
 package net.timelegend.chaka.viewer;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
+import com.artifex.mupdf.fitz.RectI;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -14,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -34,6 +36,7 @@ import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -110,14 +113,17 @@ public class DocumentActivity extends AppCompatActivity
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 	private boolean mReturnToLibraryActivity = false;
     private boolean mNavigationBar;
-    /*
-       if navigation bar is invisible. when soft keyboard is opened, it bring visible navigation bar,
-       so cause docview resized, result in document page number changes.
-       use this variable to sign a change by this case to abort onsize.
-       but in one case, that closing keyboard by navigation down button, there is no way to report.
-    */
+
+    /**
+     * if navigation bar is hidden. ime will bring it up, cause docview resize,
+     * result in page number changes in flowable documents.
+     */
+    // to notify onSizeChanged ime change by user
     private boolean mKeyboardChanged = false;
+    // to notify setOnSystemUiVisibilityChangeListener ime change by user
     private boolean mKeyboardChanged2 = false;
+    // to notify onSizeChanged ime close by system button (this is a guess)
+    private boolean mKeyboardChanged3 = false;
 
 	protected int mDisplayDPI;
 	private int mLayoutEM;      // read from prefs
@@ -376,7 +382,6 @@ public class DocumentActivity extends AppCompatActivity
 	public void createUI(Bundle savedInstanceState) {
 		if (core == null)
 			return;
-        watchNavigationBar();
 
 		// Now create the UI.
 		// First create the document view
@@ -408,8 +413,16 @@ public class DocumentActivity extends AppCompatActivity
 
 			@Override
 			public void onSizeChanged(int w, int h, int oldw, int oldh) {
+
+                // ime changed by user
                 if (mKeyboardChanged) {
                     mKeyboardChanged = false;
+                    return;
+                }
+
+                // ime closed by system button (a guess)
+                if (mKeyboardChanged3) {
+                    mKeyboardChanged3 = false;
                     return;
                 }
 
@@ -719,6 +732,8 @@ public class DocumentActivity extends AppCompatActivity
 		layout.addView(mDocView);
 		layout.addView(mButtonsView);
 		setContentView(layout);
+
+        watchNavigationBar();
 	}
 
 	private void setButtonEnabled(ImageButton button, boolean enabled) {
@@ -728,20 +743,53 @@ public class DocumentActivity extends AppCompatActivity
 
     private void watchNavigationBar() {
         View decorView = getWindow().getDecorView();
-        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int visibility) {
+        // below android 11 (api30)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            // run after onSizeChanged
+            decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                @Override
+                public void onSystemUiVisibilityChange(int visibility) {
+                    // if changed by keyboard, do not report
+                    if (mKeyboardChanged2) {
+                        mKeyboardChanged2 = false;
+                        return;
+                    }
+                    mNavigationBar = (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
+                }
+            });
+        }
+        // run before onSizeChanged
+        decorView.setOnApplyWindowInsetsListener((v, insets) -> {
+            // below android 11 (api30)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                /**
+                 * insetTop: 96: statusBar, insetBottom: 0/168: navigationBar
+                 */
+                // Lug.i("stable");
+                // RectI rs = new RectI(insets.getStableInsetLeft(),insets.getStableInsetTop()
+                //         ,insets.getStableInsetRight(),insets.getStableInsetBottom());
+                // Lug.i(rs);
+            }
+            else {
+                // Lug.i("ime:" + insets.isVisible(WindowInsets.Type.ime()));
+                // Insets bar = insets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+                // Lug.i("inset");
+                // RectI rb = new RectI(bar.left, bar.top, bar.right, bar.bottom);
+                // Lug.i(rb);
+
                 // if changed by keyboard, do not report
                 if (mKeyboardChanged2) {
                     mKeyboardChanged2 = false;
-                    return;
+                    return v.onApplyWindowInsets(insets);
                 }
-                if ((visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
-                    mNavigationBar = true;
-                } else {
-                    mNavigationBar = false;
-                }
+                mNavigationBar  = insets.isVisible(WindowInsets.Type.navigationBars());
             }
+            /**
+             * this return will lock window size so docview won't be disturbed by ime
+             * but the immersed navigation bar overlaps with the slider, so do not use it
+             */
+            // return insets.CONSUMED;
+            return v.onApplyWindowInsets(insets);
         });
     }
 
@@ -1063,6 +1111,7 @@ public class DocumentActivity extends AppCompatActivity
                 if (!mNavigationBar) {
                     mKeyboardChanged = true;
                     mKeyboardChanged2 = true;
+                    mKeyboardChanged3 = (code == InputMethodManager.RESULT_SHOWN);
                 }
             }
         }
