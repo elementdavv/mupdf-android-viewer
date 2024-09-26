@@ -7,7 +7,6 @@ import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Outline;
 import com.artifex.mupdf.fitz.Page;
-import com.artifex.mupdf.fitz.PDFPage;
 import com.artifex.mupdf.fitz.Quad;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
@@ -16,7 +15,7 @@ import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.PointF;
+import android.graphics.RectF;
 
 import java.util.ArrayList;
 
@@ -31,6 +30,8 @@ public class MuPDFCore
 	private Page page;
 	private float pageWidth;
 	private float pageHeight;
+    private float pageLeft;         // crop margin render offset left
+    private float pageTop;          // crop margin render offset top
 	private DisplayList displayList;
     private boolean singleColumnMode = false;
     private boolean textLeftMode = false;
@@ -109,6 +110,8 @@ public class MuPDFCore
 			page = null;
 			pageWidth = 0;
 			pageHeight = 0;
+            pageLeft = 0;
+            pageTop = 0;
 			currentPage = pageNum;
 
 			if (doc != null) {
@@ -117,7 +120,10 @@ public class MuPDFCore
                 Rect b = page.getBounds();
 
                 if (cropMarginMode) {
-                    b = getBBox(b);
+                    Rect bb = getBBox(b);
+                    pageLeft = bb.x0 - b.x0;
+                    pageTop = bb.y0 - b.y0;
+                    b = bb;
                 }
 
 				pageWidth = b.x1 - b.x0;
@@ -129,9 +135,10 @@ public class MuPDFCore
     /*
      * page full size
      */
-	public synchronized PointF getPageSize(int pageNum) {
+	public synchronized RectF getPageSize(int pageNum) {
 		gotoPage(pageNum);
-		return new PointF(pageWidth, pageHeight);
+        // param order: left, top, right, bottom
+		return new RectF(pageWidth, pageHeight, pageLeft, pageTop);
 	}
 
 	public synchronized void onDestroy() {
@@ -285,6 +292,8 @@ public class MuPDFCore
 
     private synchronized Rect getBBox(Rect b) {
         Rect r = page.getBBox();
+        // if blank page r is invalid
+        if (!r.isValid() || r.isInfinite()) return b;
         r.inset(-2, -2, -2, -2);
 
         // an option: let r similar to b
@@ -310,18 +319,6 @@ public class MuPDFCore
         //
 
         return r;
-    }
-
-    public synchronized PointF getRenderOffset(int pageNum) {
-		gotoPage(pageNum);
-        if (cropMarginMode) {
-            Rect b = page.getBounds();
-            Rect bb = getBBox(b);
-            float dx = bb.x0 - b.x0;
-            float dy = bb.y0 - b.y0;
-            return new PointF(dx, dy);
-        }
-        return new PointF(0, 0);
     }
 
     public boolean isSingleColumn() {

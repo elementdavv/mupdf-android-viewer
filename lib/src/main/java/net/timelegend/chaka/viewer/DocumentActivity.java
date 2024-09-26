@@ -374,7 +374,7 @@ public class DocumentActivity extends AppCompatActivity
 	public void relayoutDocument() {
 		int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
 		mFlatOutline = null;
-		// mDocView.mHistory.clear();
+		mDocView.mHistory.clear();
 		mDocView.refresh();
 		mDocView.setDisplayedViewIndex(loc);
 	}
@@ -413,7 +413,6 @@ public class DocumentActivity extends AppCompatActivity
 
 			@Override
 			public void onSizeChanged(int w, int h, int oldw, int oldh) {
-
                 // ime changed by user
                 if (mKeyboardChanged) {
                     mKeyboardChanged = false;

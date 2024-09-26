@@ -22,6 +22,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -68,6 +69,7 @@ public class PageView extends ViewGroup {
 	protected     int       mPageNumber;
 	private       Point     mParentSize;
 	protected     Point     mSize;   // Size of page at minimum zoom
+	protected     PointF    mRenderOff;   // crop margin render offset
 	protected     float     mSourceScale;
 
 	private       ImageView mEntire; // Image rendered at minimum zoom
@@ -162,14 +164,9 @@ public class PageView extends ViewGroup {
 
 		// recycle bitmaps before releasing them.
 
-        /*
-         * cause error on app exit occasionally:
-         * Called getWidth() on a recycle()'d bitmap! This is undefined behavior!
-         * adding synchronized do not work either
-         */
-		// if (mEntireBm!=null)
-		// 	mEntireBm.recycle();
-		// mEntireBm = null;
+		if (mEntireBm!=null)
+			mEntireBm.recycle();
+		mEntireBm = null;
 
 		if (mPatchBm!=null)
 			mPatchBm.recycle();
@@ -178,7 +175,6 @@ public class PageView extends ViewGroup {
         if (mColumnBm!=null)
             mColumnBm.recycle();
         mColumnBm = null;
-
 	}
 
 	public void blank(int page) {
@@ -233,7 +229,10 @@ public class PageView extends ViewGroup {
 	}
 
     // the page is correctPage, the size is full size
-	public void setPage(int page, PointF size) {
+	public void setPage(int page, RectF rSize) {
+        PointF size = new PointF(rSize.left, rSize.top);
+        mRenderOff = new PointF(rSize.right, rSize.bottom);
+
 		// Cancel pending render task
 		if (mDrawEntire != null) {
 			mDrawEntire.cancel();
@@ -319,11 +318,8 @@ public class PageView extends ViewGroup {
 				if (result.booleanValue()) {
 					clearRenderError();
                     if (mCore.isSplitPage(mPageNumber)) {
-                        int cx = getColumnX(mEntireBm.getWidth());
-                        if (cx == 0)
-                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
-                        else
-                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, (mEntireBm.getWidth() + 1) / 2, mEntireBm.getHeight());
+                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -348,13 +344,12 @@ public class PageView extends ViewGroup {
                     int viewWidth = getWidth();
 					final float scale = mSourceScale*(float)viewWidth/(float)mSize.x;
 					final Paint paint = new Paint();
-                    PointF renOff = mCore.getRenderOffset(mPageNumber);
 
 					if (!mIsBlank && mSearchBoxes != null) {
 						paint.setColor(HIGHLIGHT_COLOR);
 						for (Quad[] searchBox : mSearchBoxes) {
 							for (Quad q : searchBox) {
-                                drawRect(q.toRect(), renOff, scale, viewWidth, canvas, paint);
+                                drawRect(q.toRect(), scale, viewWidth, canvas, paint);
 							}
 						}
 					}
@@ -362,7 +357,7 @@ public class PageView extends ViewGroup {
 					if (!mIsBlank && mLinks != null && mHighlightLinks) {
 						paint.setColor(LINK_COLOR);
 						for (Link link : mLinks) {
-                            drawRect(link.getBounds(), renOff, scale, viewWidth, canvas, paint);
+                            drawRect(link.getBounds(), scale, viewWidth, canvas, paint);
                         }
 					}
 				}
@@ -373,8 +368,8 @@ public class PageView extends ViewGroup {
 		requestLayout();
 	}
 
-    private void drawRect(com.artifex.mupdf.fitz.Rect r, PointF renOff, float scale, int viewWidth, Canvas canvas, Paint paint) {
-        r.offset(-renOff.x, -renOff.y);
+    private void drawRect(com.artifex.mupdf.fitz.Rect r, float scale, int viewWidth, Canvas canvas, Paint paint) {
+        r.offset(-mRenderOff.x, -mRenderOff.y);
         float x0 = r.x0 * scale;
         float x1 = r.x1 * scale;
         float y0 = r.y0 * scale;
@@ -395,8 +390,8 @@ public class PageView extends ViewGroup {
 
 	public void setSearchBoxes(Quad searchBoxes[][]) {
 		mSearchBoxes = searchBoxes;
-		// if (mSearchView != null)
-		// 	mSearchView.invalidate();
+		if (mSearchView != null)
+			mSearchView.invalidate();
 	}
 
 	public void setLinkHighlighting(boolean f) {
@@ -508,6 +503,7 @@ public class PageView extends ViewGroup {
 			// Offset patch area to be relative to the view top left
 			patchArea.offset(-viewArea.left, -viewArea.top);
 
+            // offset patch area for split right page
             if (mCore.isSplitPage(mPageNumber) && mCore.isRightPage(mPageNumber)) {
                 patchArea.offset(-viewArea.width(), 0);
             }
@@ -554,11 +550,8 @@ public class PageView extends ViewGroup {
 						mPatchArea = patchArea;
 						clearRenderError();
                         if (mCore.isSplitPage(mPageNumber)) {
-                            int cx = getColumnX(mPatchBm.getWidth());
-                            if (cx == 0)
-                                mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, mPatchBm.getWidth() / 2, mPatchBm.getHeight());
-                            else
-                                mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, (mPatchBm.getWidth() + 1) / 2, mPatchBm.getHeight());
+                            int cx = getColumnX(patchViewSize.x, mPatchBm.getWidth());
+                            mColumnBm = Bitmap.createBitmap(mPatchBm, cx, 0, mPatchBm.getWidth() / 2, mPatchBm.getHeight());
 					        mPatch.setImageBitmap(mColumnBm);
                         }
                         else
@@ -597,11 +590,8 @@ public class PageView extends ViewGroup {
 				if (result.booleanValue()) {
 					clearRenderError();
                     if (mCore.isSplitPage(mPageNumber)) {
-                        int cx = getColumnX(mEntireBm.getWidth());
-                        if (cx == 0)
-                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
-                        else
-                            mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, (mEntireBm.getWidth() + 1) / 2, mEntireBm.getHeight());
+                        int cx = getColumnX(mSize.x, mEntireBm.getWidth());
+                        mColumnBm = Bitmap.createBitmap(mEntireBm, cx, 0, mEntireBm.getWidth() / 2, mEntireBm.getHeight());
 					    mEntire.setImageBitmap(mColumnBm);
                     }
                     else
@@ -675,14 +665,13 @@ public class PageView extends ViewGroup {
 		// make MuPDFCore.hitLinkPage superfluous.
         int viewWidth = getWidth();
 		float scale = mSourceScale*(float)viewWidth/(float)mSize.x;
-        PointF renOff = mCore.getRenderOffset(mPageNumber);
         if (mCore.isSplitPage(mPageNumber)) {
             if (mCore.isRightPage(mPageNumber)) {
                 x += viewWidth;
             }
         }
-		float docRelX = (x - getLeft())/scale + renOff.x;
-		float docRelY = (y - getTop())/scale + renOff.y;
+		float docRelX = (x - getLeft())/scale + mRenderOff.x;
+		float docRelY = (y - getTop())/scale + mRenderOff.y;
 
 		if (mLinks != null)
 			for (Link l: mLinks)
@@ -748,7 +737,10 @@ public class PageView extends ViewGroup {
     /*
      * for splitted page
      */
-    private int getColumnX(int bmw) {
-        return mCore.isRightPage(mPageNumber) ? bmw / 2 : 0;
+    private int getColumnX(int sx, int bmw) {
+        if (!mCore.isRightPage(mPageNumber)) {
+            return 0;
+        }
+        return 2 * sx > bmw ? Math.max(bmw - sx, 0) : sx;
     }
 }

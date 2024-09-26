@@ -3,7 +3,7 @@ package net.timelegend.chaka.viewer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
-import android.graphics.PointF;
+import android.graphics.RectF;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +13,7 @@ import android.os.AsyncTask;
 public class PageAdapter extends BaseAdapter {
 	private final Context mContext;
 	private final MuPDFCore mCore;
-	private final SparseArray<PointF> mPageSizes = new SparseArray<PointF>();
+	private final SparseArray<RectF> mPageSizes = new SparseArray<RectF>();
 	private       Bitmap mSharedHqBm;
 
 	public PageAdapter(Context c, MuPDFCore core) {
@@ -80,7 +80,7 @@ public class PageAdapter extends BaseAdapter {
 			pageView = (PageView) convertView;
 		}
 
-		PointF pageSize = mPageSizes.get(position);
+		RectF pageSize = mPageSizes.get(position);
 		if (pageSize != null) {
 			// We already know the page size. Set it up
 			// immediately
@@ -89,9 +89,9 @@ public class PageAdapter extends BaseAdapter {
 			// Page size as yet unknown. Blank it for now, and
 			// start a background task to find the size
 			pageView.blank(position);
-			AsyncTask<Void,Void,PointF> sizingTask = new AsyncTask<Void,Void,PointF>() {
+			AsyncTask<Void,Void,RectF> sizingTask = new AsyncTask<Void,Void,RectF>() {
 				@Override
-				protected PointF doInBackground(Void... arg0) {
+				protected RectF doInBackground(Void... arg0) {
 					try {
 						return mCore.getPageSize(position);
 					} catch (RuntimeException e) {
@@ -100,7 +100,7 @@ public class PageAdapter extends BaseAdapter {
 				}
 
 				@Override
-				protected void onPostExecute(PointF result) {
+				protected void onPostExecute(RectF result) {
 					super.onPostExecute(result);
 					// We now know the page size
 					mPageSizes.put(position, result);

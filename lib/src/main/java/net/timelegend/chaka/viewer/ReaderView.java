@@ -48,7 +48,7 @@ public class ReaderView
 	protected int               mCurrent;    // Adapter's index for the current view
 	private boolean           mResetLayout;
 	private final SparseArray<View>
-				  mChildViews = new SparseArray<View>(3);
+				  mChildViews = new SparseArray<View>(7);
 					       // Shadows the children of the adapter view
 					       // but with more sensible indexing
 	private final LinkedList<View>
@@ -370,7 +370,6 @@ public class ReaderView
 		}
 		mChildViews.clear();
 		mViewCache.clear();
-        mHistory.clear();
 
 		requestLayout();
 	}
@@ -533,8 +532,8 @@ public class ReaderView
 		}
 		if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
 			mUserInteracting = false;
-			View v = mChildViews.get(mCurrent);
 
+			View v = mChildViews.get(mCurrent);
 			if (v != null) {
                 // stay layout on scroll
                 if ((!mHorizontalScrolling && !mTextLeft) || (mHorizontalScrolling && mTextLeft)) {
@@ -716,8 +715,24 @@ public class ReaderView
 			    // Main item not already present. Just place it top left
 			    cvLeft = cvOffset.x;
 			    cvTop = cvOffset.y;
-                if (mHorizontalScrolling && mTextLeft) {
-                    cvLeft -= Math.max(cv.getMeasuredWidth() - getWidth(), 0);
+                /**
+                 * during many calls of the method for a notPresent, cv Measured dimension always changed
+                 * so the centering code is not accurate, comment it to let auto slide after jump end
+                 */
+                if (mHorizontalScrolling) {
+                    if (mTextLeft) {
+                        cvLeft -= cv.getMeasuredWidth() - getWidth();
+                    }
+                    else if (cv.getMeasuredWidth() < getWidth()) {
+                        // cvLeft += (getWidth() - cv.getMeasuredWidth()) / 2;
+                    }
+                }
+                else {
+                    if (mTextLeft) {
+                        if (cv.getMeasuredHeight() < getHeight()) {
+                            // cvTop += (getHeight() - cv.getMeasuredHeight()) / 2;
+                        }
+                    }
                 }
             }
 		} else {
@@ -738,6 +753,14 @@ public class ReaderView
 		cvBottom = cvTop + cv.getMeasuredHeight();
 		Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
 
+		// if (!mUserInteracting && mScroller.isFinished()) {
+		// 	if (anyway to identify a notPresent here, don't know) {
+		// 	    cvRight += corr.x;
+		// 	    cvLeft += corr.x;
+		// 	    cvTop += corr.y;
+		// 	    cvBottom += corr.y;
+		// 	}
+		// } else if (mHorizontalScrolling && cv.getMeasuredHeight() <= getHeight()) {
 		if (mHorizontalScrolling && cv.getMeasuredHeight() <= getHeight()) {
 			// When the current view is as small as the screen in height, clamp
 			// it vertically
@@ -752,104 +775,102 @@ public class ReaderView
 
 		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
 
-		if (mCurrent > 0) {
-			View lrv = getOrCreateChild(mCurrent - 1);
-            if (!mTextLeft) {
-                leftView(cv, lrv, true);
+        if (mCurrent > 0) {
+            View lrv = null;
+            if (!mTextLeft)
+                lrv = leftView(cv, -1, true);
+            else
+                lrv = rightView(cv, -1, true);
+            if (lrv != null && mCurrent > 1) {
+                View lrv2 = null;
+                if (!mTextLeft)
+                    lrv2 = leftView(lrv, -2, true);
+                else
+                    lrv2 = rightView(lrv, -2, true);
+                if (lrv2 != null && mCurrent > 2) {
+                    View lrv3 = null;
+                    if (!mTextLeft)
+                        lrv3 = leftView(lrv2, -3, false);
+                    else
+                        lrv3 = rightView(lrv2, -3, false);
+                }
             }
-            else {
-                rightView(cv, lrv, true);
-            }
-		    if (mCurrent > 1) {
-			    View lrv2 = getOrCreateChild(mCurrent - 2);
-                if (!mTextLeft) {
-                    leftView(lrv, lrv2, true);
-                }
-                else {
-                    rightView(lrv, lrv2, true);
-                }
-                if (mCurrent > 2) {
-			        View lrv3 = getOrCreateChild(mCurrent - 3);
-                    if (!mTextLeft) {
-                        leftView(lrv2, lrv3, false);
-                    }
-                    else {
-                        rightView(lrv2, lrv3, false);
-                    }
-                }
-		    }
-		}
+        }
 
-		if (mCurrent + 1 < mAdapter.getCount()) {
-			View lrv = getOrCreateChild(mCurrent + 1);
-            if (!mTextLeft) {
-                rightView(cv, lrv, true);
-            }
-            else {
-                leftView(cv, lrv, true);
-            }
-		    if (mCurrent + 2 < mAdapter.getCount()) {
-			    View lrv2 = getOrCreateChild(mCurrent + 2);
-                if (!mTextLeft) {
-                    rightView(lrv, lrv2, true);
-                }
-                else {
-                    leftView(lrv, lrv2, true);
-                }
-		        if (mCurrent + 3 < mAdapter.getCount()) {
-			        View lrv3 = getOrCreateChild(mCurrent + 3);
-                    if (!mTextLeft) {
-                        rightView(lrv2, lrv3, false);
-                    }
-                    else {
-                        leftView(lrv2, lrv3, false);
-                    }
+        if (mCurrent + 1 < mAdapter.getCount()) {
+            View lrv = null;
+            if (!mTextLeft)
+                lrv = rightView(cv, 1, true);
+            else
+                lrv = leftView(cv, 1, true);
+            if (lrv != null && mCurrent + 2 < mAdapter.getCount()) {
+                View lrv2 = null;
+                if (!mTextLeft)
+                    lrv2 = rightView(lrv, 2, true);
+                else
+                    lrv2 = leftView(lrv, 2, true);
+                if (lrv != null && mCurrent + 3 < mAdapter.getCount()) {
+                    View lrv3 = null;
+                    if (!mTextLeft)
+                        lrv3 = rightView(lrv2, 3, false);
+                    else
+                        lrv3 = leftView(lrv2, 3, false);
                 }
             }
-		}
+        }
 
 		mXScroll = mYScroll = 0;
 		invalidate();
 	}
 
-    private void leftView(View v, View v2, boolean force) {
-		Point off = subScreenSizeOffset(v);
-		Point off2 = subScreenSizeOffset(v2);
-		if (mHorizontalScrolling && (force || mXScroll > 0)) {                 // move content to right
+    private View leftView(View v, int n, boolean force) {
+        Point off = subScreenSizeOffset(v);
+        View v2 = null;
+        if (mHorizontalScrolling && (force || mXScroll > 0)) {                 // move content to right
+            v2 = getOrCreateChild(mCurrent + n);
+            Point off2 = subScreenSizeOffset(v2);
             int gap = off.x + GAP + off2.x;
             v2.layout(v.getLeft() - gap - v2.getMeasuredWidth()
                     , (v.getTop() + v.getBottom() - v2.getMeasuredHeight()) / 2
                     , v.getLeft() - gap
                     , (v.getTop() + v.getBottom() + v2.getMeasuredHeight()) / 2
                     );
-		} else if (!mHorizontalScrolling && (force || mYScroll > 0)){          // move content to bottom
+        } else if (!mHorizontalScrolling && (force || mYScroll > 0)){          // move content to bottom
+            v2 = getOrCreateChild(mCurrent + n);
+            Point off2 = subScreenSizeOffset(v2);
             int gap = off.y + GAP + off2.y;
             v2.layout((v.getLeft() + v.getRight() - v2.getMeasuredWidth()) / 2
                     , v.getTop() - gap - v2.getMeasuredHeight()
                     , (v.getLeft() + v.getRight() + v2.getMeasuredWidth()) / 2
                     , v.getTop() - gap
                     );
-		}
+        }
+        return v2;
     }
 
-    private void rightView(View v, View v2, boolean force) {
-		Point off = subScreenSizeOffset(v);
-		Point off2 = subScreenSizeOffset(v2);
-		if (mHorizontalScrolling && (force || mXScroll < 0)) {                 // move content to left
+    private View rightView(View v, int n, boolean force) {
+        Point off = subScreenSizeOffset(v);
+        View v2 = null;
+        if (mHorizontalScrolling && (force || mXScroll < 0)) {                 // move content to left
+            v2 = getOrCreateChild(mCurrent + n);
+            Point off2 = subScreenSizeOffset(v2);
             int gap = off.x + GAP + off2.x;
             v2.layout(v.getRight() + gap
                     , (v.getTop() + v.getBottom() - v2.getMeasuredHeight()) / 2
                     , v.getRight() + gap + v2.getMeasuredWidth()
                     , (v.getTop() + v.getBottom() + v2.getMeasuredHeight()) / 2
                     );
-		} else if (!mHorizontalScrolling && (force || mYScroll < 0)){          // move content to top
+        } else if (!mHorizontalScrolling && (force || mYScroll < 0)){          // move content to top
+            v2 = getOrCreateChild(mCurrent + n);
+            Point off2 = subScreenSizeOffset(v2);
             int gap = off.y + GAP + off2.y;
             v2.layout((v.getLeft() + v.getRight() - v2.getMeasuredWidth()) / 2
                     , v.getBottom() + gap
                     , (v.getLeft() + v.getRight() + v2.getMeasuredWidth()) / 2
                     , v.getBottom() + gap + v2.getMeasuredHeight()
                     );
-		}
+        }
+        return v2;
     }
 
 	@Override
@@ -1048,7 +1069,7 @@ public class ReaderView
 
     public boolean isWide() {
         View v = mChildViews.get(mCurrent);
-        return v.getMeasuredWidth() > v.getMeasuredHeight();
+        return (v == null) ? false : v.getMeasuredWidth() > v.getMeasuredHeight();
     }
 
     /*
