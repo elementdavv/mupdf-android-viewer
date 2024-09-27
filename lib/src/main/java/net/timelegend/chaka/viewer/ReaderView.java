@@ -145,6 +145,7 @@ public class ReaderView
 			onMoveToChild(i);
 			mResetLayout = true;
 			requestLayout();
+            amendment();
 		}
 	}
 
@@ -372,6 +373,7 @@ public class ReaderView
 		mViewCache.clear();
 
 		requestLayout();
+        amendment();
 	}
 
 	public View getView(int i) {
@@ -535,19 +537,13 @@ public class ReaderView
 
 			View v = mChildViews.get(mCurrent);
 			if (v != null) {
-                // stay layout on scroll
-                if ((!mHorizontalScrolling && !mTextLeft) || (mHorizontalScrolling && mTextLeft)) {
-		            if (mScroller.isFinished()) {
-			            postSettle(v);
-		            }
-                    return true;
-                }
-
-				if (mScroller.isFinished()) {
-					// If, at the end of user interaction, there is no
-					// current inertial scroll in operation then animate
-					// the view onto screen if necessary
-					slideViewOntoScreen(v);
+				if ((mHorizontalScrolling && !mTextLeft) || (!mHorizontalScrolling && mTextLeft)) {
+				    if (mScroller.isFinished()) {
+				        // If, at the end of user interaction, there is no
+				        // current inertial scroll in operation then animate
+				        // the view onto screen if necessary
+				        slideViewOntoScreen(v);
+				    }
 				}
 
 				if (mScroller.isFinished()) {
@@ -717,21 +713,19 @@ public class ReaderView
 			    cvTop = cvOffset.y;
                 /**
                  * during many calls of the method for a notPresent, cv Measured dimension always changed
-                 * so the centering code is not accurate, comment it to let auto slide after jump end
+                 * here the centering code is not accurate, amend it after jump end
                  */
                 if (mHorizontalScrolling) {
-                    if (mTextLeft) {
-                        cvLeft -= cv.getMeasuredWidth() - getWidth();
+                    if (cv.getMeasuredWidth() < getWidth()) {
+                        cvLeft += (getWidth() - cv.getMeasuredWidth()) / 2;
                     }
-                    else if (cv.getMeasuredWidth() < getWidth()) {
-                        // cvLeft += (getWidth() - cv.getMeasuredWidth()) / 2;
+                    else if (mTextLeft) {
+                        cvLeft -= cv.getMeasuredWidth() - getWidth();
                     }
                 }
                 else {
-                    if (mTextLeft) {
-                        if (cv.getMeasuredHeight() < getHeight()) {
-                            // cvTop += (getHeight() - cv.getMeasuredHeight()) / 2;
-                        }
+                    if (cv.getMeasuredHeight() < getHeight()) {
+                        cvTop += (getHeight() - cv.getMeasuredHeight()) / 2;
                     }
                 }
             }
@@ -992,13 +986,15 @@ public class ReaderView
 		});
 	}
 
-	private void slideViewOntoScreen(View v) {
+	private boolean slideViewOntoScreen(View v) {
 		Point corr = getCorrection(getScrollBounds(v));
 		if (corr.x != 0 || corr.y != 0) {
 			mScrollerLastX = mScrollerLastY = 0;
 			mScroller.startScroll(0, 0, corr.x, corr.y, 1000);
 			mStepper.prod();
+            return true;
 		}
+        return false;
 	}
 
 	private Point subScreenSizeOffset(View v) {
@@ -1083,13 +1079,25 @@ public class ReaderView
      * before go to absolute view, save current position
      * smart focus accounted
      */
-    public void savePosition(int i) {
+    private void savePosition(int i) {
         View cv = getDisplayedView();
         mPrevLeft = cv.getLeft();
         if (mSmartFocus && !sameSide(mCurrent, i)) {
             mPrevLeft = -(cv.getRight() - getWidth());
         }
         mPrevTop = cv.getTop();
+    }
+
+    private void amendment() {
+        postDelayed(new Runnable() {
+            public void run() {
+                View v = getDisplayedView();
+                if (slideViewOntoScreen(v)) {
+                    if (mScroller.isFinished())
+                        postSettle(v);
+                }
+            }
+        }, 200);
     }
 
     /**
@@ -1125,7 +1133,7 @@ public class ReaderView
                 if (yScroll < bottom) yScroll = bottom;
             }
         }
-        else if (mCurrent == mAdapter.getCount() - 1) {
+        if (mCurrent == mAdapter.getCount() - 1) {
             if (!mTextLeft && yScroll < 0) {
                 int bottom = -(v.getBottom() - getHeight());
 		        if (hclam) bottom -= clam;
@@ -1173,7 +1181,7 @@ public class ReaderView
                 if (xScroll < right) xScroll = right;
             }
         }
-        else if (mCurrent == mAdapter.getCount() - 1) {
+        if (mCurrent == mAdapter.getCount() - 1) {
             if (!mTextLeft && xScroll < 0) {
                 int right = -(v.getRight() - getWidth());
 		        if (wclam) right -= clam;
@@ -1296,6 +1304,8 @@ public class ReaderView
                     // to make slide work
                     mYScroll = 1;
                     slideViewOntoScreen(pv);
+				    if (mScroller.isFinished())
+				        postSettle(pv);
                 }
             }
         }, 200);

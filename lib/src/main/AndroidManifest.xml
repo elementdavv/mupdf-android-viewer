@@ -9,7 +9,6 @@
         >
 		<activity
 			android:name=".DocumentActivity"
-            android:launchMode="singleTask"
 			android:configChanges="orientation|screenSize|keyboardHidden"
 			android:exported="true"
             android:theme="@style/Theme.MyApp"
