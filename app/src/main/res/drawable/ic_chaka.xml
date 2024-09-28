@@ -14,10 +14,10 @@
 				android:endY="0.8045481"
 				android:tileMode="clamp">
 				<item
-					android:color="#FD4D07"
+					android:color="#3cb371"
 					android:offset="0" />
 				<item
-					android:color="#FD8F2F"
+					android:color="#3cb371"
 					android:offset="1" />
 			</gradient>
 		</aapt:attr>
@@ -39,14 +39,14 @@
 		android:fillColor="#FCEAB6" />
 	<path
 		android:pathData="M32.193 16.961A1.657 2.141 0 0 1 28.879 16.961A1.657 2.141 0 0 1 32.193 16.961Z"
-		android:fillColor="#FF7C21" />
+		android:fillColor="#3cb371" />
 	<path
 		android:pathData="M24.053 16.961A1.657 2.141 0 0 1 20.739 16.961A1.657 2.141 0 0 1 24.053 16.961Z"
-		android:fillColor="#FF7C21" />
+		android:fillColor="#3cb371" />
 	<path
 		android:pathData="M23.17 31.62A2.322 3.096 0 0 1 18.526 31.62A2.322 3.096 0 0 1 23.17 31.62Z"
-		android:fillColor="#FF610F" />
+		android:fillColor="#3cb371" />
 	<path
 		android:pathData="M34.418 31.62A2.322 3.096 0 0 1 29.774 31.62A2.322 3.096 0 0 1 34.418 31.62Z"
-		android:fillColor="#FF610F" />
+		android:fillColor="#3cb371" />
 </vector>

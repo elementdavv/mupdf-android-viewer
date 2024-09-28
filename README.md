@@ -1,5 +1,5 @@
 ## Summary
-Chaka is an android app based on MuPDF Android Viewer, plus many new features that makes Chaka an excellent book viewer app. It dedicates to book reading experience, provides most expected functions.
+Chaka is an android app based on MuPDF Android Viewer, plus many new features that makes Chaka an excellent book reader. It dedicates to book reading experience, provides most expected functions.
 
 ## New Features
 - <img src="resources/flip_vertical.png"> Vertical Flipping
@@ -8,37 +8,41 @@ Chaka is an android app based on MuPDF Android Viewer, plus many new features th
 
 - <img src="resources/text_left.png"> Right-to-Left Forward
 
-  In general, words in a book read from left to right (right to left for RtL text such as Arabic), lines top to down, page left to right. There is an exception in some Japanese and traditional Chinese books, where words read from top to down, lines right to left, page right to left. **Right-to-Left Forward** mode can be applied to these books.
+  In general, words in a book run from left to right (right to left for RtL text such as Arabic), lines top to down, page left to right. There is an exception in some Japanese and traditional Chinese books, where words run from top to down, lines right to left, page right to left. **Right-to-Left Forward** mode can be applied to these books.
 
 - <img src="resources/single_column.png"> Single Column
 
-  Some PDF books were scanned in a way that the left and right pages were put into one image, resulted a so called dual-spread page. For this situation, **Single Column** mode plays a role. It splits a dual-spread page of a PDF book into two pages.
+  Some PDF books were scanned in a way that the left and right pages were put in one image, resulting in a so called dual-spread page. In the scenario, **Single Column** mode plays a role. It splits a dual-spread page into two pages.
 
-  In **Single Column** mode, all pages except first and last page are splitted. And note that it works only with **WIDE** documents that page width is longer than page height.
+  In **Single Column** mode, all pages except first and last page are splitted. Note that it works only on **WIDE** documents that page width is longer than page height.
+
+- <img src="resources/crop_margin.png"> Crop Margin
+
+  Crop page margin to get more efficient reading space. All documents types are supported.
 
 - <img src="resources/focus.png"> Focus
 
-  **Focus** mode can retent the position of last page. If you flip or jump to another page. it will show the area of new page the same as old page. For PDF books that has much page margins and it is zoomed, this mode can save many unnecessary finger taps while you are reading.
+  **Focus** mode can retent page display position across zoomed pages. When page changes. **Focus** mode present visible content area of new page the same as the old one.
 
-  On entering **Focus** mode, current page will zoom automatically to fill screen in shorter dimension and center in screen. Most books will gain the best fit of reading window.
+  On entering **Focus** mode, current page will zoom automatically to match screen in shorter dimension and center in screen.
 
 - <img src="resources/smart_focus.png"> Smart Focus
 
-  In many scanned books, content area do not always appear centered in a page. Frequently it inclines toward left or right border. **Smart Focus** deals with this case. By adjusting the position of even or odd pages accordingly, it makes **Focus** mode behave smartly.
+  For scanned PDF books, content area scarcely appear exactly centered in a page. More likely it inclines toward left or right side. **Smart Focus** deals with this case. By adjusting the position of even or odd pages accordingly, it makes **Focus** mode behave smartly.
 
   **Smart Focus** must work with **Focus** mode to make sense.
 
-- Continuous scrolling
+- Continuous scroll
 
-  Continuous scrolling is a more charming feature for book reading experience. Instead of changing to prev or next page at one tap, it can scroll across several pages smoothly and quickly, in both horizontal and vertical flipping mode. It can also scroll to and stay at any position of a page, or slide automatically to the nearest whole page, according to current working status.
+  **Continuous scroll** is another must have feature for a book reader. It has been perfectly implemented in all scenarios.
 
 - <img src="resources/format.png"> Font size
 
-  Current font size is indicated in **Font Size** menu. The **Font Size** button will appear if the document is flowable, e.g. epub.
+  Current font size is indicated in **Font Size** menu. The **Font Size** button only appear when the document is flowable, e.g. epub.
 
 - <img src="resources/toc.png"> Table of Contents
 
-  **Table of Contents** support multi-level headings, and headings collapsing and expanding. The **Table of Contents** button will appear if the document has an ToC.
+  **Table of Contents** supports multi-level headings, and headings collapsing / expanding. The **Table of Contents** button only appear when the document has a ToC.
 
 - Scrollable Toobar
 
