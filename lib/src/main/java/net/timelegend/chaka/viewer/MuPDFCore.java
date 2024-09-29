@@ -293,8 +293,12 @@ public class MuPDFCore
     private synchronized Rect getBBox(Rect b) {
         Rect r = page.getBBox();
         // if blank page r is invalid
-        if (!r.isValid() || r.isInfinite()) return b;
+        if (!r.isValid() || r.isInfinite() || r.isEmpty()) return b;
         r.inset(-2, -2, -2, -2);
+        r.x0 = Math.max(r.x0, b.x0);
+        r.y0 = Math.max(r.y0, b.y0);
+        r.x1 = Math.min(r.x1, b.x1);
+        r.y1 = Math.min(r.y1, b.y1);
 
         // an option: let r similar to b
         // that results in less better effect but consistent display
