@@ -18,7 +18,7 @@ android {
 		minSdkVersion 21
 		targetSdkVersion 34
 		versionName '1.24.9a.8'
-		versionCode 8
+		versionCode 1008
 	}
 	splits {
 		abi {
