@@ -9,12 +9,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-	if (file('../fitz/build.gradle').isFile())
-		api project(':fitz')
-	else if (file('../jni/build.gradle').isFile())
+	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
-		api 'com.artifex.mupdf:fitz:1.24.9'
+	    api 'net.timelegend.mupdf:fitz:1.24.9.1'
 }
 
 android {
