@@ -18,19 +18,19 @@ android {
 		minSdkVersion 21
 		targetSdkVersion 34
 		versionName '1.24.9a.8'
-		versionCode 1008
+		versionCode 8
 	}
-	splits {
-		abi {
-			enable true
-			universalApk true
-		}
-	}
-	bundle {
-		abi {
-			enableSplit true
-		}
-	}
+	// splits {
+	// 	abi {
+	// 		enable true
+	// 		universalApk true
+	// 	}
+	// }
+	// bundle {
+	// 	abi {
+	// 		enableSplit true
+	// 	}
+	// }
 	if (project.hasProperty('release_storeFile')) {
 		signingConfigs {
 			release {
