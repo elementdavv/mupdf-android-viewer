@@ -1,8 +1,6 @@
-.externalNativeBuild
 .gradle
 .idea
-*.iml
-android.keystore
+*.keystore
 build
 local.properties
 MAVEN
@@ -11,3 +9,5 @@ tags
 .settings/
 app/gradle.properties
 .classpath
+backup
+todo

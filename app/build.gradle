@@ -20,17 +20,17 @@ android {
 		versionName '1.24.9a.9'
 		versionCode 155
 	}
-	// splits {
-	// 	abi {
-	// 		enable true
-	// 		universalApk true
-	// 	}
-	// }
-	// bundle {
-	// 	abi {
-	// 		enableSplit true
-	// 	}
-	// }
+	splits {
+		abi {
+			enable true
+			universalApk true
+		}
+	}
+	bundle {
+		abi {
+			enableSplit true
+		}
+	}
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
