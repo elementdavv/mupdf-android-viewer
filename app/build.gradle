@@ -19,17 +19,23 @@ android {
 		targetSdkVersion 34
 		versionName '1.24.9a.9'
 		versionCode 155
-	}
-	splits {
-		abi {
-			enable true
-			universalApk true
-		}
-	}
-	bundle {
-		abi {
-			enableSplit true
-		}
+
+        if (!project.hasProperty('noSplits')) {
+	        splits {
+		        abi {
+			        enable true
+			        reset()
+			        include('arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64')
+			        universalApk true
+		        }
+	        }
+        }
+        if (project.hasProperty('ABI_FILTERS')) {
+            ndk {
+                abiFilters = []
+                abiFilters.addAll(ABI_FILTERS.split(',').collect{it as String})
+            }
+        }
 	}
     dependenciesInfo {
         // Disables dependency metadata when building APKs.

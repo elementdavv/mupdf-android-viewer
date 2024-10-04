@@ -1,5 +1,10 @@
 buildscript {
 	repositories {
+		if (project.hasProperty('MAVEN_REPO')) {
+			maven { url MAVEN_REPO }
+		} else {
+			maven { url "file://${System.properties['user.home']}/MAVEN" }
+		}
 		google()
 		mavenCentral()
 	}
@@ -10,6 +15,12 @@ buildscript {
 
 allprojects {
 	repositories {
+		if (project.hasProperty('MAVEN_REPO')) {
+			maven { url MAVEN_REPO }
+		} else {
+			maven { url "file://${System.properties['user.home']}/MAVEN" }
+		}
+		maven { url 'https://maven.ghostscript.com/' }
 		google()
 		mavenCentral()
 	}

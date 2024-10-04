@@ -57,5 +57,15 @@ project.afterEvaluate {
 				}
 			}
 		}
+		repositories {
+			maven {
+				name 'Local'
+				if (project.hasProperty('MAVEN_REPO')) {
+					url = MAVEN_REPO
+				} else {
+					url = "file://${System.properties['user.home']}/MAVEN"
+				}
+			}
+		}
 	}
 }
