@@ -36,3 +36,8 @@ allprojects {
     //     }
     // }
 }
+subprojects {
+    if (project.hasProperty('ABI_FILTERS')) {
+        ext.ABI_FILTERS = ABI_FILTERS;
+    }
+}
