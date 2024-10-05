@@ -30,7 +30,7 @@ android {
 		        }
 	        }
         }
-        if (project.hasProperty('ABI_FILTERS')) {
+        else if (project.hasProperty('ABI_FILTERS')) {
             ndk {
                 abiFilters = []
                 abiFilters.addAll(ABI_FILTERS.split(',').collect{it as String})
@@ -46,6 +46,8 @@ android {
 	if (project.hasProperty('release_storeFile')) {
 		signingConfigs {
 			release {
+				enableV3Signing true
+				enableV4Signing true
 				storeFile file(release_storeFile)
 				storePassword release_storePassword
 				keyAlias release_keyAlias
