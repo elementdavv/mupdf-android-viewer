@@ -36,11 +36,6 @@ android {
                 abiFilters.addAll(ABI_FILTERS.split(',').collect{it as String})
             }
         }
-        packagingOptions {
-            jniLibs {
-                keepDebugSymbols += "**/*.so"
-            }
-        }
 	}
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
