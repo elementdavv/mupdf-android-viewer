@@ -12,7 +12,7 @@ dependencies {
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
-	    api 'net.timelegend.mupdf:fitz:1.24.9.1'
+	    api 'net.timelegend.mupdf:fitz:1.24.9.2'
 }
 
 android {
