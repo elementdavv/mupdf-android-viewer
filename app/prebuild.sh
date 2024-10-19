@@ -2,6 +2,8 @@
 
 set -x
 
+rm -rf ../jni/libmupdf/thirdparty/curl/tests/data/
+rm -rf ../jni/libmupdf/thirdparty/leptonica/prog/fuzzing/
 rm -rf ../jni/libmupdf/thirdparty/lcms2/testbed/
 rm -rf ../jni/libmupdf/thirdparty/lcms2/Projects/VC2013/lcms2mt.sln
 rm -rf ../jni/libmupdf/thirdparty/lcms2/utils/delphi/
