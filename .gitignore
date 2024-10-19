@@ -11,3 +11,4 @@ app/gradle.properties
 .classpath
 backup
 todo
+fdroiddata
