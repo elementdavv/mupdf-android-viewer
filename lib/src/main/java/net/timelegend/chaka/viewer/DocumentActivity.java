@@ -85,6 +85,7 @@ public class DocumentActivity extends AppCompatActivity
     private ImageButton  mSingleColumnButton;
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
+	private ImageButton  mLockButton;
 	private ImageButton  mCropMarginButton;
 	private ImageButton  mFocusButton;
 	private ImageButton  mSmartFocusButton;
@@ -103,6 +104,7 @@ public class DocumentActivity extends AppCompatActivity
     private boolean    mSingleColumnHighlight = false;
     private boolean    mTextLeftHighlight = false;
     private boolean    mFlipVerticalHighlight = false;
+    private boolean    mLockHighlight = false;
     private boolean    mCropMarginHighlight = false;
     private boolean    mFocusHighlight = false;
     private boolean    mSmartFocusHighlight = false;
@@ -124,6 +126,11 @@ public class DocumentActivity extends AppCompatActivity
     private boolean mKeyboardChanged2 = false;
     // to notify onSizeChanged ime close by system button (this is a guess)
     private boolean mKeyboardChanged3 = false;
+
+    private int highlightColor = Color.argb(0xFF, 0x3C, 0xB3, 0x71);
+    private int highunlightColor = Color.argb(0xFF, 255, 255, 255);
+    private int enabledColor = Color.argb(255, 255, 255, 255);
+    private int disabledColor = Color.argb(255, 128, 128, 128);
 
 	protected int mDisplayDPI;
 	private int mLayoutEM;      // read from prefs
@@ -430,7 +437,7 @@ public class DocumentActivity extends AppCompatActivity
                     public void run() {
                         int BUTTON_WIDTH = 160;
                         // toolbar buttons count
-                        int cbut = 8;
+                        int cbut = 9;
                         if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
                         if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
                         int tw = w - BUTTON_WIDTH * cbut;
@@ -473,6 +480,7 @@ public class DocumentActivity extends AppCompatActivity
             TooltipCompat.setTooltipText(mSingleColumnButton, getString(R.string.single_column));
             TooltipCompat.setTooltipText(mTextLeftButton, getString(R.string.text_left));
             TooltipCompat.setTooltipText(mFlipVerticalButton, getString(R.string.flip_vertical));
+            TooltipCompat.setTooltipText(mLockButton, getString(R.string.lock));
             TooltipCompat.setTooltipText(mCropMarginButton, getString(R.string.crop_margin));
             TooltipCompat.setTooltipText(mFocusButton, getString(R.string.focus));
             TooltipCompat.setTooltipText(mLinkButton, getString(R.string.link));
@@ -532,6 +540,12 @@ public class DocumentActivity extends AppCompatActivity
             }
         });
 
+        mLockButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                toggleLock();
+            }
+        });
+
         mCropMarginButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 toggleCropMargin();
@@ -566,8 +580,8 @@ public class DocumentActivity extends AppCompatActivity
 		// Search invoking buttons are disabled while there is no text specified
 		mSearchBack.setEnabled(false);
 		mSearchFwd.setEnabled(false);
-		mSearchBack.setColorFilter(Color.argb(255, 128, 128, 128));
-		mSearchFwd.setColorFilter(Color.argb(255, 128, 128, 128));
+		mSearchBack.setColorFilter(disabledColor);
+		mSearchFwd.setColorFilter(disabledColor);
 
 		// React to interaction with the text widget
 		mSearchText.addTextChangedListener(new TextWatcher() {
@@ -737,7 +751,7 @@ public class DocumentActivity extends AppCompatActivity
 
 	private void setButtonEnabled(ImageButton button, boolean enabled) {
 		button.setEnabled(enabled);
-		button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
+		button.setColorFilter(enabled ? enabledColor : disabledColor);
 	}
 
     private void watchNavigationBar() {
@@ -875,7 +889,7 @@ public class DocumentActivity extends AppCompatActivity
         }
         mSingleColumnHighlight = !mSingleColumnHighlight;
 		// COLOR tint
-		mSingleColumnButton.setColorFilter(mSingleColumnHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mSingleColumnButton.setColorFilter(mSingleColumnHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
         core.toggleSingleColumn();
 		mDocView.toggleSingleColumn(mSingleColumnHighlight);
@@ -897,7 +911,7 @@ public class DocumentActivity extends AppCompatActivity
     private void toggleTextLeftHighlight() {
 		mTextLeftHighlight = !mTextLeftHighlight;
 		// COLOR tint
-		mTextLeftButton.setColorFilter(mTextLeftHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mTextLeftButton.setColorFilter(mTextLeftHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		core.toggleTextLeft();
 		mDocView.toggleTextLeft();
@@ -909,15 +923,23 @@ public class DocumentActivity extends AppCompatActivity
     private void toggleFlipVerticalHighlight() {
 		mFlipVerticalHighlight = !mFlipVerticalHighlight;
 		// COLOR tint
-		mFlipVerticalButton.setColorFilter(mFlipVerticalHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mFlipVerticalButton.setColorFilter(mFlipVerticalHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		mDocView.toggleFlipVertical();
 	}
 
+    private void toggleLock() {
+		mLockHighlight = !mLockHighlight ;
+		// COLOR tint
+		mLockButton.setColorFilter(mLockHighlight ? highlightColor : highunlightColor);
+		// Inform pages of the change.
+		mDocView.toggleLock();
+    }
+
     private void toggleCropMargin() {
 		mCropMarginHighlight = !mCropMarginHighlight;
 		// COLOR tint
-		mCropMarginButton.setColorFilter(mCropMarginHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mCropMarginButton.setColorFilter(mCropMarginHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		core.toggleCropMargin();
 		mDocView.toggleCropMargin();
@@ -926,7 +948,7 @@ public class DocumentActivity extends AppCompatActivity
     private void toggleFocus() {
 		mFocusHighlight = !mFocusHighlight;
 		// COLOR tint
-		mFocusButton.setColorFilter(mFocusHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mFocusButton.setColorFilter(mFocusHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		mDocView.toggleFocus();
     }
@@ -934,7 +956,7 @@ public class DocumentActivity extends AppCompatActivity
     private void toggleSmartFocus() {
 		mSmartFocusHighlight = !mSmartFocusHighlight;
 		// COLOR tint
-		mSmartFocusButton.setColorFilter(mSmartFocusHighlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mSmartFocusButton.setColorFilter(mSmartFocusHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		mDocView.toggleSmartFocus();
     }
@@ -942,7 +964,7 @@ public class DocumentActivity extends AppCompatActivity
 	private void setLinkHighlight(boolean highlight) {
 		mLinkHighlight = highlight;
 		// LINK_COLOR tint
-		mLinkButton.setColorFilter(highlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
+		mLinkButton.setColorFilter(highlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
 		mDocView.setLinksEnabled(highlight);
 	}
@@ -1071,6 +1093,7 @@ public class DocumentActivity extends AppCompatActivity
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
         mFocusButton = (ImageButton)mButtonsView.findViewById(R.id.focusButton);
+        mLockButton = (ImageButton)mButtonsView.findViewById(R.id.lockButton);
         mCropMarginButton = (ImageButton)mButtonsView.findViewById(R.id.cropMarginButton);
         mSmartFocusButton = (ImageButton)mButtonsView.findViewById(R.id.smartFocusButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);

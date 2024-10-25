@@ -13,8 +13,9 @@
 	<string name="text_not_found">Text not found</string>
 
     <string name="single_column">Single Column</string>
-    <string name="text_left">Forward: Left &lt;-- Right</string>
+    <string name="text_left">Reversal</string>
     <string name="flip_vertical">Flip Vertical</string>
+    <string name="lock">Lock Scroll Stray</string>
     <string name="crop_margin">Crop Margin</string>
     <string name="focus">Focus</string>
     <string name="smart_focus">Smart Focus</string>

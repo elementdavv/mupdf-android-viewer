@@ -70,6 +70,7 @@ public class ReaderView
     private boolean       mHorizontalScrolling = true;
     private boolean       mFocus = false;
     private boolean       mSmartFocus = false;
+    private boolean       mLock = false;
     private int           mPrevLeft;
     private int           mPrevTop;
 
@@ -464,8 +465,8 @@ public class ReaderView
 		if (!tapDisabled)
 			onDocMotion();
 		if (!mScaling) {
-			mXScroll -= distanceX;
-			mYScroll -= distanceY;
+			if (!mLock || mHorizontalScrolling) mXScroll -= distanceX;
+			if (!mLock || !mHorizontalScrolling) mYScroll -= distanceY;
 			requestLayout();
 		}
 		return true;
@@ -1314,6 +1315,10 @@ public class ReaderView
     public void toggleFlipVertical() {
         mHorizontalScrolling = !mHorizontalScrolling;
 		requestLayout();
+    }
+
+    public void toggleLock() {
+        mLock = !mLock;
     }
 
     public void toggleCropMargin() {
