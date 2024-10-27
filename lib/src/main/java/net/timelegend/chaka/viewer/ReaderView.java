@@ -427,6 +427,9 @@ public class ReaderView
 		if (v != null) {
             float offx = e1.getX() - e2.getX();
             float offy = e1.getY() - e2.getY();
+            if (mLock) {
+                if (mHorizontalScrolling) velocityY = 0; else velocityX = 0;
+            }
             float vx = Math.abs(velocityX);
             float vy = Math.abs(velocityY);
             if ((vx > vy && mHorizontalScrolling) || (vx < vy && !mHorizontalScrolling)) {
