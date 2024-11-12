@@ -1,6 +1,12 @@
 ## Summary
 Chaka is an android app based on MuPDF Android Viewer, plus many new features that makes Chaka an excellent book reader. It dedicates to book reading experience, provides most expected functions.
 
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/net.timelegend.chaka.viewer.app/)
+
+Or download the latest APK from the [Releases Section](https://github.com/elementdavv/chaka/releases/latest).
+
 ## New Features
 - <img src="resources/flip_vertical.png"> Vertical Flipping
 
