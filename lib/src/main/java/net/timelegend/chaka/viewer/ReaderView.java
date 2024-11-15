@@ -66,6 +66,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
+    private boolean       mSingleColumn = false;
     private boolean       mTextLeft = false;
     private boolean       mHorizontalScrolling = true;
     private boolean       mFocus = false;
@@ -1282,8 +1283,9 @@ public class ReaderView
 		mStepper.prod();
     }
 
-    public void toggleSingleColumn(boolean sc) {
-        if (sc) {
+    public void toggleSingleColumn() {
+        mSingleColumn = !mSingleColumn ;
+        if (mSingleColumn) {
             mCurrent = (mCurrent * 2) - 1;
             if (mCurrent < 0) mCurrent = 0;
         }
@@ -1423,6 +1425,12 @@ public class ReaderView
 		// in HQ
         // this will update from original data when zoomed to make text clear
 		((PageView) v).updateHq(false);
+        if (mCurrent == ((PageView) v).getPage()) {
+            boolean vis = mCurrent > 0
+                    && mCurrent < (mAdapter.getCount() - 1)
+                    && (mSingleColumn || v.getWidth() > v.getHeight());
+            ((DocumentActivity)mContext).showSingleColumnButton(vis ? View.VISIBLE : View.GONE);
+        }
 	}
 
 	protected void onUnsettle(View v) {

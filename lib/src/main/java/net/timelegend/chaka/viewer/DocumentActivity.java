@@ -435,17 +435,7 @@ public class DocumentActivity extends AppCompatActivity
                 // ajust doc name width
                 new Handler().postDelayed(new Runnable(){
                     public void run() {
-                        int BUTTON_WIDTH = 160;
-                        // toolbar buttons count
-                        int cbut = 9;
-                        if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
-                        if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
-                        int tw = w - BUTTON_WIDTH * cbut;
-                        int titlebytelen = mDocNameView.getText().toString().getBytes().length;
-                        int titlewidth = titlebytelen * 32;
-                        int minwidth = Math.min(titlewidth, 360);
-                        tw = Math.max(tw, minwidth);
-                        mDocNameView.setWidth(tw);
+                        updateTopBar(w);
                     }}, 200);
 
 				if (core.isReflowable()) {
@@ -878,12 +868,12 @@ public class DocumentActivity extends AppCompatActivity
         int index;
         if (!mSingleColumnHighlight) {
             if (!mDocView.isWide()) {
-                callAlert(R.string.is_not_wide);
+                show(R.string.is_not_wide);
                 return;
             }
 		    index = mDocView.getDisplayedViewIndex();
             if (index == 0 || index == (core.countPages() - 1)) {
-                callAlert(R.string.first_last_page);
+                show(R.string.first_last_page);
                 return;
             }
         }
@@ -892,20 +882,13 @@ public class DocumentActivity extends AppCompatActivity
 		mSingleColumnButton.setColorFilter(mSingleColumnHighlight ? highlightColor : highunlightColor);
 		// Inform pages of the change.
         core.toggleSingleColumn();
-		mDocView.toggleSingleColumn(mSingleColumnHighlight);
+		mDocView.toggleSingleColumn();
 		int smax = Math.max(core.countPages()-1,1);
 		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
 		index = mDocView.getDisplayedViewIndex();
 		updatePageNumView(index);
         updatePageSlider(index);
 		mFlatOutline = null;
-    }
-
-    private void callAlert(int msg) {
-        new AlertDialog.Builder(this, R.style.MyDialog)
-                .setTitle(msg)
-                .setPositiveButton(R.string.dismiss, null)
-                .show();
     }
 
     private void toggleTextLeftHighlight() {
@@ -1138,6 +1121,37 @@ public class DocumentActivity extends AppCompatActivity
             }
         }
     };
+
+    public void updateTopBar(Integer w) {
+        if (w == null) {
+		    DisplayMetrics metrics = new DisplayMetrics();
+		    getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		    w = (int)metrics.widthPixels;
+        }
+        int BUTTON_WIDTH = 160;
+        // topbar button count
+        int cbut = 8;
+        if (mSingleColumnButton.getVisibility() == View.VISIBLE) cbut++;
+        if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
+        if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
+        int tw = w - BUTTON_WIDTH * cbut;
+        int titlebytelen = mDocNameView.getText().toString().getBytes().length;
+        int titlewidth = titlebytelen * 32;
+        int minwidth = Math.min(titlewidth, 360);
+        tw = Math.max(tw, minwidth);
+        mDocNameView.setWidth(tw);
+    }
+
+    public void showSingleColumnButton(int vis) {
+        if (mSingleColumnButton.getVisibility() != vis) {
+            mSingleColumnButton.setVisibility(vis);
+            updateTopBar(null);
+        }
+    }
+
+    public void show(int sid) {
+        Toast.makeText(this, getString(sid), Toast.LENGTH_SHORT).show();
+    }
 
 	private void search(int direction) {
 		hideKeyboard();

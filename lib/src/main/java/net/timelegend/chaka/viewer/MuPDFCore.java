@@ -24,6 +24,7 @@ public class MuPDFCore
 	private int resolution;
 	private Document doc;
 	private Outline[] outline;
+	private int basePageCount = -1;
 	private int pageCount = -1;
 	private boolean reflowable = false;
 	private int currentPage;
@@ -44,9 +45,21 @@ public class MuPDFCore
 
 	private MuPDFCore(Document doc) {
 		this.doc = doc;
-		doc.layout(layoutW, layoutH, layoutEM);
-        correctPageCount();
 		reflowable = doc.isReflowable();
+		// for flowable docs, count page is slow, spare once call
+		if (!reflowable) {
+			doc.layout(layoutW, layoutH, layoutEM);
+			correctPageCount(true);
+		}
+		// apply consistent css to all flowable docs
+		else {
+			String css = ""
+					+ "@page{margin:2em !important;}"
+					+ "body{display:block;margin:0 !important;padding:0 !important;}"
+					+ "p{display:block;margin:0.6em 0 !important;}"
+					;
+			com.artifex.mupdf.fitz.Context.setUserCSS(css);
+		}
 		resolution = 160;
 		currentPage = -1;
 	}
@@ -80,8 +93,8 @@ public class MuPDFCore
 			layoutEM = em;
 			long mark = doc.makeBookmark(doc.locationFromPageNumber(oldPage));
 			doc.layout(layoutW, layoutH, layoutEM);
+			correctPageCount(true);
 			currentPage = -1;
-            correctPageCount();
 			outline = null;
 			try {
 				outline = doc.loadOutline();
@@ -211,7 +224,7 @@ public class MuPDFCore
 
     public void toggleSingleColumn() {
         singleColumnMode = !singleColumnMode;
-        correctPageCount();
+        correctPageCount(false);
     }
 
     public void toggleTextLeft() {
@@ -344,12 +357,15 @@ public class MuPDFCore
         return textLeftMode;
     }
 
-    private void correctPageCount() {
+    private void correctPageCount(boolean refresh) {
+        if (refresh || basePageCount == -1) {
+            basePageCount = doc.countPages();
+        }
         if (singleColumnMode)
             // divide every page into 2 pages, except first and last page
-		    pageCount = doc.countPages() * 2 - 2;
+            pageCount = basePageCount * 2 - 2;
         else
-		    pageCount = doc.countPages();
+            pageCount = basePageCount ;
     }
 
     public int correctPage(int p) {

@@ -20,7 +20,7 @@
         <!-- <item name="colorOnError">@color/black</item> -->
 
         <!-- for overscroll-->
-        <item name="android:colorEdgeEffect">@color/edge</item>
+        <item name="android:colorEdgeEffect">@color/mediumseagreen</item>
 
         <!-- for menu text -->
         <item name="android:textColor">@android:color/white</item>
