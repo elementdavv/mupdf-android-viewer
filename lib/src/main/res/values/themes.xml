@@ -3,6 +3,7 @@
         <!-- for App Title -->
         <item name="colorPrimary">@color/toolbar</item>
         <item name="colorPrimaryDark">@color/toolbar</item>
+        <item name="colorAccent">@color/mediumseagreen</item>
         <!-- for menu checkbox -->
         <item name="colorSecondary">@android:color/white</item>
         <!-- <item name="colorPrimaryVariant">@color/purple_700</item> -->

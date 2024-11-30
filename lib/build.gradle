@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 group = 'net.timelegend.chaka'
-version = '1.24.9a.10'
+version = '1.24.9a.11'
 
 dependencies {
     implementation 'com.google.android.material:material:1.8.0'
@@ -17,6 +17,7 @@ dependencies {
 
 android {
 	compileSdkVersion 34
+	buildToolsVersion '34.0.0'
 	defaultConfig {
         namespace 'net.timelegend.chaka.viewer'
 		minSdkVersion 21
@@ -68,4 +69,14 @@ project.afterEvaluate {
             }
 		}
 	}
+}
+
+tasks.register("printCompileClasspath") {
+    doLast {
+        println("---START---")
+        configurations.getByName("debugCompileClasspath").files.forEach { file ->
+            println(file.absolutePath)
+        }
+        println("---END---")
+    }
 }

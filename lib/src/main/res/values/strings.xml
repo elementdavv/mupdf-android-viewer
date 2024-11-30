@@ -12,6 +12,7 @@
 	<string name="searching_">Searching&#x2026;</string>
 	<string name="text_not_found">Text not found</string>
 
+    <string name="copy">Copy Selection</string>
     <string name="single_column">Single Column</string>
     <string name="text_left">Read Reversal</string>
     <string name="flip_vertical">Flip Vertical</string>

@@ -11,11 +11,14 @@ import com.artifex.mupdf.fitz.Quad;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
 import com.artifex.mupdf.fitz.SeekableInputStream;
+import com.artifex.mupdf.fitz.StructuredText;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.graphics.RectF;
+import android.util.SparseArray;
 
 import java.util.ArrayList;
 
@@ -33,6 +36,7 @@ public class MuPDFCore
 	private float pageHeight;
     private float pageLeft;         // crop margin render offset left
     private float pageTop;          // crop margin render offset top
+    private final SparseArray<TextSelectionModel> tsModel = new SparseArray<>();
 	private DisplayList displayList;
     private boolean singleColumnMode = false;
     private boolean textLeftMode = false;
@@ -125,7 +129,6 @@ public class MuPDFCore
 			pageHeight = 0;
             pageLeft = 0;
             pageTop = 0;
-			currentPage = pageNum;
 
 			if (doc != null) {
                 pageNum = realPage(pageNum);
@@ -142,6 +145,8 @@ public class MuPDFCore
 				pageWidth = b.x1 - b.x0;
 				pageHeight = b.y1 - b.y0;
 			}
+
+			currentPage = pageNum;
 		}
 	}
 
@@ -338,6 +343,11 @@ public class MuPDFCore
         return r;
     }
 
+	public synchronized StructuredText getSText(int pageNum) {
+		gotoPage(pageNum);
+		return page != null ? page.toStructuredText() : null;
+	}
+
     public boolean isSingleColumn() {
         return singleColumnMode;
     }
@@ -389,4 +399,40 @@ public class MuPDFCore
 	public synchronized boolean authenticatePassword(String password) {
 		return doc.authenticatePassword(password);
 	}
+
+    public TextSelectionModel getTSModel(int pageNum) {
+        return getTSModel(pageNum, false);
+    }
+
+    public TextSelectionModel getTSModel(int pageNum, boolean create) {
+        TextSelectionModel tsmodel = tsModel.get(pageNum);
+        if (tsmodel == null) {
+            if (create) {
+                tsmodel = new TextSelectionModel();
+                tsmodel.sText = getSText(pageNum);
+            }
+        }
+        return tsmodel;
+    }
+
+    public void putTSModel(int pageNum, TextSelectionModel tsmodel) {
+        tsModel.put(pageNum, tsmodel);
+    }
+
+    public void rmTSModel(int pageNum) {
+        tsModel.remove(pageNum);
+    }
+
+    public void clearTSModel() {
+        tsModel.clear();
+    }
+
+    public static class TextSelectionModel {
+        public StructuredText sText;        // page text structure
+        public Quad[]    selectionBoxes;    // selection result on source
+        public PointF[]  textHandles = new PointF[2];       // handles point on source
+        public PointF[]  boundries= new PointF[2];          // boundries point on source
+        public int       dir;               // 0: none, 1: left, 2: right, 3: both
+        public android.graphics.Rect[]    rectHandles = new android.graphics.Rect[2];      // handles rect on view
+    }
 }

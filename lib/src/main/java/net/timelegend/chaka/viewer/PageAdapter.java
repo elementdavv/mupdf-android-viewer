@@ -47,6 +47,7 @@ public class PageAdapter extends BaseAdapter {
 
 	public void refresh() {
 		mPageSizes.clear();
+		mCore.clearTSModel();
 	}
 
     /*

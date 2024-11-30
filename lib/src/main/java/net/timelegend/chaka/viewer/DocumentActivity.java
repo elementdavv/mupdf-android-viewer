@@ -82,7 +82,8 @@ public class DocumentActivity extends AppCompatActivity
 	private SeekBar      mPageSlider;
 	private int          mPageSliderRes;
 	private TextView     mPageNumberView;
-    private ImageButton  mSingleColumnButton;
+	private ImageButton  mCopyButton;
+	private ImageButton  mSingleColumnButton;
 	private ImageButton  mTextLeftButton;
 	private ImageButton  mFlipVerticalButton;
 	private ImageButton  mLockButton;
@@ -467,6 +468,7 @@ public class DocumentActivity extends AppCompatActivity
 
         // below android 8 (api26)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            TooltipCompat.setTooltipText(mCopyButton, getString(R.string.copy));
             TooltipCompat.setTooltipText(mSingleColumnButton, getString(R.string.single_column));
             TooltipCompat.setTooltipText(mTextLeftButton, getString(R.string.text_left));
             TooltipCompat.setTooltipText(mFlipVerticalButton, getString(R.string.flip_vertical));
@@ -511,6 +513,12 @@ public class DocumentActivity extends AppCompatActivity
 				    updatePageNumView(core.countPages() - 1 - (progress+mPageSliderRes/2)/mPageSliderRes);
 			}
 		});
+
+        mCopyButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                copy();
+            }
+        });
 
         mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -721,7 +729,7 @@ public class DocumentActivity extends AppCompatActivity
 		// Reenstate last state if it was recorded
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 		mDocView.setDisplayedViewIndex(core.correctPage(prefs.getInt("page"+mDocKey, 0)));
-        mLayoutEM = prefs.getInt("layoutem"+mDocKey, 6);
+		mLayoutEM = prefs.getInt("layoutem"+mDocKey, 7);
 
 		if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
 			showButtons();
@@ -863,6 +871,10 @@ public class DocumentActivity extends AppCompatActivity
 		core = null;
 		super.onDestroy();
 	}
+
+    private void copy() {
+        mDocView.copy();
+    }
 
     private void toggleSingleColumnHighlight() {
         int index;
@@ -1072,6 +1084,7 @@ public class DocumentActivity extends AppCompatActivity
 		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
+        mCopyButton = (ImageButton)mButtonsView.findViewById(R.id.copyButton);
         mSingleColumnButton = (ImageButton)mButtonsView.findViewById(R.id.singleColumnButton);
         mTextLeftButton = (ImageButton)mButtonsView.findViewById(R.id.textLeftButton);
         mFlipVerticalButton = (ImageButton)mButtonsView.findViewById(R.id.flipVerticalButton);
@@ -1140,6 +1153,11 @@ public class DocumentActivity extends AppCompatActivity
         int minwidth = Math.min(titlewidth, 360);
         tw = Math.max(tw, minwidth);
         mDocNameView.setWidth(tw);
+    }
+
+    public void showCopyButton(int vis) {
+        mCopyButton.setVisibility(vis);
+        updateTopBar(null);
     }
 
     public void showSingleColumnButton(int vis) {
