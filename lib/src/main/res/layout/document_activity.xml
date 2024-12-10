@@ -64,7 +64,6 @@
 				android:layout_height="wrap_content"
 				android:background="@drawable/button"
 				android:src="@drawable/ic_single_column_white_24dp"
-				android:visibility="gone"
 				android:tooltipText="@string/single_column"
 				/>
 

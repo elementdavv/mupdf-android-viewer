@@ -1,24 +1,22 @@
-## Summary
-Chaka is an android app based on MuPDF Viewer, plus many new features that makes an excellent book reader. It does not care about book management, but dedicates to improving reading experience, provides the most expected functions.
+# Chaka Book Reader
+An Android book reader app based on MuPDF viewer. It does not care about book management, but dedicates to improving reading experience.
 
 Pdf, Epub, Mobi, Cbz, Fb2 and Xps documents are supported.
 
-## New Features
+## Features
 - <img src="resources/flip_vertical.png"> Vertical Flip
 
   The most popular reading mode.
 
-- <img src="resources/text_left.png"> Read Reversal
+- <img src="resources/text_left.png"> RtL Text
 
-  In general, words in a book run from left to right, lines top to down and pages left to right. There is an exception in some Japanese and traditional Chinese books where words run from top to down, lines right to left and pages right to left. **Read Reversal** mode can be applied to this kind of books.
+  In top-to-bottom, right-to-left script (TB-RL or vertical), writing starts from the top of the page and continues to the bottom, proceeding from right to left for new lines, pages numbered from right to left. The **RtL Text** mode can be applied to some traditional Chinese, Japanese and Korean books.
 
 - <img src="resources/single_column.png"> Single Column
 
   Some PDF books were scanned in a way that left and right pages were put in one image, resulting in a so called dual-spread page. In the scenario, **Single Column** mode plays a role. It splits a dual-spread page into two pages.
 
-  In **Single Column** mode, all pages except first and last page are splitted.
-
-  The **Single Column** button will show up on **WIDE** pages which means page width is longer than page height.
+  **Single Column** only works with **WIDE** documents which page width is longer than page height. In **Single Column** mode, all pages except first and last page are splitted.
 
 - Continuous scroll
 
@@ -44,24 +42,24 @@ Pdf, Epub, Mobi, Cbz, Fb2 and Xps documents are supported.
 
   **Smart Focus** must work with **Focus** mode to make sense.
 
+- <img src="resources/copy.png"> Copy Text
+
+  Long press on texts to trigger text selection, then change the selection by moving two handles. Use **Copy** button to copy the selection text to system clipboard. In **Vertical Flip** mode, selection area can cross pages. Under selection state, all navigation operations work as usual. To cancel selection, touch on blank area.
+
 - <img src="resources/format.png"> Font size
 
   Current font size is indicated in **Font Size** menu.
 
-  The **Font Size** button only appear in Epub, Mobi, or Fb2 documents.
-
 - <img src="resources/toc.png"> Table of Contents
 
-  **Table of Contents** supports multi-level headings, and headings collapsing / expanding.
-
-  The **Table of Contents** button only appear when the document has one.
+  **Table of Contents** supports multi-level headings, and headings collapsing / expanding. It keeps up with the current page on opening.
 
 - Scrollable Toobar
 
-  The top toolbar is made scrollable to accommodate more buttons, and the buttons will show up when available.
+  The Scrollable Top Toolbar can accommodate many buttons which will show up when the corresponding functions are available.
 
-## Watch what the new functions look like
-<a src="https://www.youtube.com/watch?v=b-v8aNi6bc0">https://www.youtube.com/watch?v=b-v8aNi6bc0</a>
+## Introduction Video
+[![Chaka Book Reader](https://img.youtube.com/vi/KkB2vlDj_6g/0.jpg)](https://youtu.be/KkB2vlDj_6g)
 
 ## Donation
-If you want to support my work you could donate some coins. [![donate](resources/paypal-logo.png)](https://paypal.me/timelegend)
+If you want to support my work you could donate by [![donate](resources/paypal-logo.png)](https://paypal.me/timelegend)

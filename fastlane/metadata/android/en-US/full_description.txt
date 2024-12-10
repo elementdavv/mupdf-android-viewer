@@ -1,13 +1,21 @@
-It dedicates to book reading experience.
+Read book fluently and comfortably, with simple and clear interface.
 
-Supported Documents:
+Supported Document Types:
 Pdf, Epub, Mobi, Cbz, Fb2 and Xps
 
-Main Features:
-Horizontal / Vertical Flipping
+Features:
+Horizontal / Vertical Flip
 Continuous Scroll
-Cropping Margin
-Single Column mode
-Focus Mode
-Lock Stray
-and many more
+Lock Stray: Keep scroll straight
+Margin Crop
+Focus Mode: Retent page position on flipping zoomed pages
+Smarty Focus: Recognize border bias in Focus Mode
+Text Copy
+RtL Text: Support Top-to-Bottom, Right-to-Left(TB-RL) text
+Single Column: Support scanned dual-spread PDF page
+Links
+Search
+Font Size
+Table of Contents
+
+The project is under active development.

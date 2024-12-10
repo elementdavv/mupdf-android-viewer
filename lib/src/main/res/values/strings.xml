@@ -14,11 +14,11 @@
 
     <string name="copy">Copy Selection</string>
     <string name="single_column">Single Column</string>
-    <string name="text_left">Read Reversal</string>
+    <string name="text_left">RtL Text</string>
     <string name="flip_vertical">Flip Vertical</string>
     <string name="lock">Lock Stray</string>
     <string name="crop_margin">Crop Margin</string>
-    <string name="focus">Focus</string>
+    <string name="focus">Focus Mode</string>
     <string name="smart_focus">Smart Focus</string>
     <string name="link">Activate Links</string>
     <string name="text_search">Search</string>

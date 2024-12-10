@@ -93,6 +93,7 @@ public class ReaderView
     private int           mSelectRightView;                 // view pageNumber with text select right handle
     private boolean       mLongPress = false;               // as longpress
     private MotionEvent   mLongPressEvent;
+    private Runnable      mLongPressRunnable;;
     private long          mMoveTime = 0L;
 
 	protected Stack<Integer> mHistory;
@@ -437,10 +438,8 @@ public class ReaderView
 	}
 
 	public boolean onDown(MotionEvent e) {
-        if (mSelecting == SELECT.NO_SELECT) {
-            mLongPress = true;
-            mLongPressEvent = e;
-            postDelayed(new Runnable() {
+        if (mLongPressRunnable == null) {
+            mLongPressRunnable = new Runnable() {
                 public void run() {
                     if (mLongPress) {
                         mLongPress = false;
@@ -448,7 +447,13 @@ public class ReaderView
                     }
                     mLongPressEvent = null;
                 }
-            }, ViewConfiguration.getLongPressTimeout());
+            };
+        }
+        if (mSelecting == SELECT.NO_SELECT) {
+            removeCallbacks(mLongPressRunnable);
+            mLongPress = true;
+            mLongPressEvent = e;
+            postDelayed(mLongPressRunnable, ViewConfiguration.getLongPressTimeout());
         }
         else if (mSelecting == SELECT.SELECTING) {
             inSelect(e.getX(), e.getY());
@@ -524,8 +529,9 @@ public class ReaderView
                 else if (key > v1 && key < v2) {
                     pv.moveSelect(0, null, null);
                 }
-                else
+                else {
                     pv.unSelect();
+                }
             }
             else if (ind == -1) {
                 if (key == v2) {
@@ -537,16 +543,18 @@ public class ReaderView
                 else if (key > v2 && key < v1) {
                     pv.moveSelect(0, null, null);
                 }
-                else
+                else {
                     pv.unSelect();
+                }
             }
             else {  // ind == 0
                 if (key == v1) {
                     int m = (mSelecting == SELECT.MOVE_RIGHT) ? 0 : 1;
                     pv.moveSelect(3 + m, x, y);
                 }
-                else
+                else {
                     pv.unSelect();
+                }
             }
         }
         mMoveTime = System.currentTimeMillis();
@@ -560,7 +568,7 @@ public class ReaderView
 		    PageView pv = (PageView)getDisplayedView();
             buffer.append(pv.copy(i)).append("\n");
         }
-        ClipboardManager cm = (ClipboardManager) mContext.getSystemService(mContext.CLIPBOARD_SERVICE);
+        ClipboardManager cm = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText(null, buffer.toString()));
         endSelect();
     }
@@ -1648,7 +1656,7 @@ public class ReaderView
 		// in HQ
         // this will update from original data when zoomed to make text clear
 		((PageView) v).updateHq(false);
-        if (mCurrent == ((PageView) v).getPage()) {
+        if (mCurrent == ((PageView) v).getPage() && !mAdapter.isReflowable()) {
             boolean vis = mCurrent > 0
                     && mCurrent < (mAdapter.getCount() - 1)
                     && (mSingleColumn || v.getWidth() > v.getHeight());

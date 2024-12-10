@@ -520,17 +520,27 @@ public class DocumentActivity extends AppCompatActivity
             }
         });
 
-        mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                toggleSingleColumnHighlight();
-            }
-        });
+        if (core.isReflowable()) {
+            mSingleColumnButton.setVisibility(View.GONE);
+        }
+        else {
+            mSingleColumnButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    toggleSingleColumnHighlight();
+                }
+            });
+        }
 
-        mTextLeftButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                toggleTextLeftHighlight();
-            }
-        });
+        if (core.isReflowable()) {
+            mTextLeftButton.setVisibility(View.GONE);
+        }
+        else {
+            mTextLeftButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    toggleTextLeftHighlight();
+                }
+            });
+        }
 
         mFlipVerticalButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -1143,8 +1153,10 @@ public class DocumentActivity extends AppCompatActivity
         }
         int BUTTON_WIDTH = 160;
         // topbar button count
-        int cbut = 8;
+        int cbut = 7;
+        if (mCopyButton.getVisibility() == View.VISIBLE) cbut++;
         if (mSingleColumnButton.getVisibility() == View.VISIBLE) cbut++;
+        if (mTextLeftButton.getVisibility() == View.VISIBLE) cbut++;
         if (mLayoutButton.getVisibility() == View.VISIBLE) cbut++;
         if (mOutlineButton.getVisibility() == View.VISIBLE) cbut++;
         int tw = w - BUTTON_WIDTH * cbut;
@@ -1156,8 +1168,10 @@ public class DocumentActivity extends AppCompatActivity
     }
 
     public void showCopyButton(int vis) {
-        mCopyButton.setVisibility(vis);
-        updateTopBar(null);
+        if (mCopyButton.getVisibility() != vis) {
+            mCopyButton.setVisibility(vis);
+            updateTopBar(null);
+        }
     }
 
     public void showSingleColumnButton(int vis) {
