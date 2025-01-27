@@ -12,6 +12,7 @@
 			android:configChanges="orientation|screenSize|keyboardHidden"
 			android:exported="true"
             android:theme="@style/Theme.MyApp"
+			android:allowEmbedded="true"
 			>
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
